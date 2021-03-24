@@ -1,0 +1,23 @@
+version: "3"
+services:
+  postgres:
+    image: io_postgres:latest
+    network_mode: bridge
+    container_name: postgres
+    ports:
+      - 5485:5432
+    restart: unless-stopped
+  scheduleapp:
+    image: io_backend:latest
+    network_mode: bridge
+    container_name: scheduleapp
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    links:
+      - postgres
+
