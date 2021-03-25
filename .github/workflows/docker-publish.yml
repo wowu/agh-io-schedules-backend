@@ -30,4 +30,4 @@ jobs:
     - name: Add execute permission for gradlew
       run: chmod +x gradlew
     - name: Test with Gradle
-      run: ./gradlew test  --stacktrac
+      run: ./gradlew test  --stacktrace
