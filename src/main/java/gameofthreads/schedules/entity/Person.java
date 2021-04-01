@@ -18,11 +18,11 @@ public class Person {
     @Column(name = "lastname")
     private String lastname;
 
-    @Column(name = "role")
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
     @OneToOne(mappedBy = "person")
-    private Account account;
+    private User user;
+
+    public String getEmail(){
+        return email;
+    }
 
 }
