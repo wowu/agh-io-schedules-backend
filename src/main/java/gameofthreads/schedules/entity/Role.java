@@ -1,10 +1,9 @@
 package gameofthreads.schedules.entity;
 
 public enum Role {
-    ADMIN("ROLE_ADMIN"),
-    LECTURER("ROLE_LECTURER"),
-    STUDENT("ROLE_STUDENT"),
-    ANONYMOUS("ROLE_ANONYMOUS");
+    ADMIN("ADMIN"),
+    LECTURER("LECTURER"),
+    STUDENT("STUDENT");
 
     public String name;
 
