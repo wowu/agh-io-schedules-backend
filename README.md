@@ -17,6 +17,7 @@ sudo docker-compose up
 ```
 
 <h3>Authentication and Authorization</h3>
+
 ```
 Admin credentials:
 - username : admin@io.pl
