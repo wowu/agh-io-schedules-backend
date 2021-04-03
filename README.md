@@ -40,7 +40,7 @@ ResponseBody: {
  "refreshToken" : ...
 }
 
-Access token expiration time : 10 miutes
+Access token expiration time : 10 minutes
 Refresh token expiration time : 45 minutes
 
 2.Authorization
@@ -63,4 +63,3 @@ If server return HTTP 401, it means that refresh token is expired.
 Client need to be authenticated again.
 
 ```
-
