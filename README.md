@@ -11,9 +11,8 @@ gradle bootRun
 <h3>Run Spring Boot App inside Docker Container</h3>
 
 ```shell
-sudo docker build -f db.Dockerfile -t io_postgres .
-sudo docker build -f app.Dockerfile -t io_backend .
 sudo docker-compose up
+psql postgresql://docker:docker@localhost/postgres
 ```
 
 <h3>Authentication and Authorization</h3>
