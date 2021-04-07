@@ -15,3 +15,51 @@ sudo docker build -f db.Dockerfile -t io_postgres .
 sudo docker build -f app.Dockerfile -t io_backend .
 sudo docker-compose up
 ```
+
+<h3>Authentication and Authorization</h3>
+
+```
+Admin credentials:
+- username : admin@io.pl
+- password : mlk72bx
+
+Public key : zvxcTUTglkOP67x
+
+1.Authentication
+
+HTTP Method : POST
+HTTP endpoint : /api/token/create
+
+RequestBody : {
+ "username" : ...
+ "password" : ...
+}
+
+ResponseBody: {
+ "token" : ...
+ "refreshToken" : ...
+}
+
+Access token expiration time : 10 minutes
+Refresh token expiration time : 45 minutes
+
+2.Authorization
+
+Authorization : Bearer <token>
+If server return HTTP 401, it means that access token is expired.
+
+3. Refresh token.
+
+HTTP Method : POST
+HTTP endpoint : /api/token/refresh
+Authorization : Bearer <refreshToken>
+
+ResponseBody: {
+ "token" : ...
+ "refreshToken" : ...
+}
+
+If server return HTTP 401, it means that refresh token is expired.
+Client need to be authenticated again.
+
+```
