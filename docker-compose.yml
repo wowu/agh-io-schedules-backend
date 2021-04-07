@@ -1,23 +1,27 @@
 version: "3"
 services:
   postgres:
-    image: io_postgres:latest
-    network_mode: bridge
-    container_name: postgres
+    image: postgres:13-alpine
     ports:
-      - 5485:5432
+      - 5432:5432
     restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: docker
+      POSTGRES_USER: docker
+      POSTGRES_DB: io_schedules
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
   scheduleapp:
-    image: io_backend:latest
-    network_mode: bridge
-    container_name: scheduleapp
-    expose:
-      - 8080
+    build:
+      context: .
+      dockerfile: app.Dockerfile
     ports:
-      - 8080:8080
+      - "8080:8080"
     restart: unless-stopped
     depends_on:
       - postgres
-    links:
-      - postgres
+
+volumes:
+  postgres-data:
 
