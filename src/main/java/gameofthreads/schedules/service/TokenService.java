@@ -3,6 +3,7 @@ package gameofthreads.schedules.service;
 import gameofthreads.schedules.domain.UserInfo;
 import gameofthreads.schedules.dto.request.AuthRequest;
 import gameofthreads.schedules.entity.User;
+import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.UserRepository;
 import io.vavr.control.Try;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,20 +34,20 @@ public class TokenService implements UserDetailsService {
     public Map<String, String> authenticate(AuthRequest authRequest) {
         UserInfo userInfo = Try.of(() -> loadUserByUsername(authRequest.username))
                 .map(user -> (UserInfo) user)
-                .getOrElseThrow(() -> new UsernameNotFoundException("Wrong email."));
+                .getOrElseThrow(() -> new UsernameNotFoundException(ErrorMessage.WRONG_USERNAME.getText()));
 
         if (passwordEncoder.matches(authRequest.password, userInfo.getPassword())) {
             return createClaimsMap(userInfo);
         }
 
-        throw new UsernameNotFoundException("Wrong password.");
+        throw new UsernameNotFoundException(ErrorMessage.WRONG_PASSWORD.getText());
     }
 
     public Map<String, String> refresh(String username){
         return Try.of(() -> loadUserByUsername(username))
                 .map(user -> (UserInfo) user)
                 .map(this::createClaimsMap)
-                .getOrElseThrow(() -> new UsernameNotFoundException("Wrong email."));
+                .getOrElseThrow(() -> new UsernameNotFoundException(ErrorMessage.WRONG_USERNAME.getText()));
     }
 
     private Map<String, String> createClaimsMap(UserInfo userInfo){

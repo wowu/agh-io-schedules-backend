@@ -1,6 +1,7 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.request.AuthRequest;
+import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.security.jwt.JwtCreator;
 import gameofthreads.schedules.service.TokenService;
 import io.vavr.control.Try;
@@ -23,10 +24,13 @@ public class TokenController {
 
     @PostMapping("/create")
     public ResponseEntity<?> authenticate(@RequestBody AuthRequest authRequest) {
-        return Try.of(() -> tokenService.authenticate(authRequest))
+        Try<ResponseEntity<?>> responseEntity =  Try.of(() -> tokenService.authenticate(authRequest))
                 .map(claims -> jwtCreator.createWithClaims(authRequest.username, claims))
-                .map(ResponseEntity::ok)
-                .getOrElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+                .map(ResponseEntity::ok);
+
+        return responseEntity.isSuccess() ?
+                responseEntity.get():
+                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorMessage.WRONG_CREDENTIALS.asJson());
     }
 
     @PostMapping("/refresh")
@@ -34,13 +38,16 @@ public class TokenController {
         JwtAuthenticationToken jwtToken = (JwtAuthenticationToken) token;
 
         if(!jwtToken.getTokenAttributes().containsKey("refresh")){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Wrong refresh token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorMessage.WRONG_TOKEN.asJson());
         }
 
-        return Try.of(() -> tokenService.refresh(jwtToken.getName()))
+        Try<ResponseEntity<?>> responseEntity = Try.of(() -> tokenService.refresh(jwtToken.getName()))
                 .map(claims -> jwtCreator.createWithClaims(jwtToken.getName(), claims))
-                .map(ResponseEntity::ok)
-                .getOrElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+                .map(ResponseEntity::ok);
+
+        return responseEntity.isSuccess() ?
+                responseEntity.get():
+                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorMessage.WRONG_TOKENS_SUBJECT.asJson());
     }
 
 }
