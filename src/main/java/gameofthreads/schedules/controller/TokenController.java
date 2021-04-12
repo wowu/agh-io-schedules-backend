@@ -38,7 +38,7 @@ public class TokenController {
         JwtAuthenticationToken jwtToken = (JwtAuthenticationToken) token;
 
         if(!jwtToken.getTokenAttributes().containsKey("refresh")){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorMessage.WRONG_TOKEN.asJson());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorMessage.WRONG_REFRESH_TOKEN.asJson());
         }
 
         Try<ResponseEntity<?>> responseEntity = Try.of(() -> tokenService.refresh(jwtToken.getName()))

@@ -1,7 +1,7 @@
 package gameofthreads.schedules.message;
 
 public enum ErrorMessage {
-    WRONG_TOKEN("Wrong token."),
+    WRONG_REFRESH_TOKEN("Wrong refresh token. Jwt payload does not contain the required data."),
     WRONG_CREDENTIALS("Wrong username or password."),
     WRONG_USERNAME("Wrong username."),
     WRONG_PASSWORD("Wrong password."),
