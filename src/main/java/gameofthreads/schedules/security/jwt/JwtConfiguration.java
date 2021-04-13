@@ -33,8 +33,8 @@ public class JwtConfiguration {
     private String privateKeyPassphrase;
 
     @Bean
-    public KeyStore keyStore(){
-        try{
+    public KeyStore keyStore() {
+        try {
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             InputStream resourceStream = Thread.currentThread()
                     .getContextClassLoader()
@@ -49,10 +49,10 @@ public class JwtConfiguration {
     }
 
     @Bean
-    public RSAPrivateKey jwtSigningKey(KeyStore keyStore){
-        try{
+    public RSAPrivateKey jwtSigningKey(KeyStore keyStore) {
+        try {
             Key key = keyStore.getKey(keyAlias, privateKeyPassphrase.toCharArray());
-            if(key instanceof RSAPrivateKey) return (RSAPrivateKey) key;
+            if (key instanceof RSAPrivateKey) return (RSAPrivateKey) key;
         } catch (UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException e) {
             LOGGER.error("Unable to load private key from keyStore: {}", keyStorePath, e);
         }
@@ -61,11 +61,11 @@ public class JwtConfiguration {
     }
 
     @Bean
-    public RSAPublicKey jwtValidationKey(KeyStore keyStore){
-        try{
+    public RSAPublicKey jwtValidationKey(KeyStore keyStore) {
+        try {
             Certificate certificate = keyStore.getCertificate(keyAlias);
             PublicKey publicKey = certificate.getPublicKey();
-            if(publicKey instanceof RSAPublicKey) return (RSAPublicKey) publicKey;
+            if (publicKey instanceof RSAPublicKey) return (RSAPublicKey) publicKey;
         } catch (KeyStoreException e) {
             LOGGER.error("Unable to load public key from keyStore: {}", keyStorePath, e);
         }
@@ -74,7 +74,7 @@ public class JwtConfiguration {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(RSAPublicKey rsaPublicKey){
+    public JwtDecoder jwtDecoder(RSAPublicKey rsaPublicKey) {
         return NimbusJwtDecoder.withPublicKey(rsaPublicKey).build();
     }
 

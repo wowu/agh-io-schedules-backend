@@ -22,9 +22,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests(config ->
-                    config
-                            .antMatchers("/api/token/*").permitAll()
-                            .anyRequest().authenticated()
+                        config
+                                .antMatchers("/api/token/*").permitAll()
+                                .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer()
                 .authenticationEntryPoint(new OAuth2EntryPoint())

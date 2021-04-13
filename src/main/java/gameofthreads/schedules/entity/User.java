@@ -3,7 +3,7 @@ package gameofthreads.schedules.entity;
 import javax.persistence.*;
 
 @Entity
-@Table(name="my_user")
+@Table(name = "my_user")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +32,7 @@ public class User {
         return role;
     }
 
-    public String getUsername(){
+    public String getUsername() {
         return person.getEmail();
     }
 

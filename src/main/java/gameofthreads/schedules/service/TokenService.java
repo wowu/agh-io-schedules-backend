@@ -43,14 +43,14 @@ public class TokenService implements UserDetailsService {
         throw new UsernameNotFoundException(ErrorMessage.WRONG_PASSWORD.getText());
     }
 
-    public Map<String, String> refresh(String username){
+    public Map<String, String> refresh(String username) {
         return Try.of(() -> loadUserByUsername(username))
                 .map(user -> (UserInfo) user)
                 .map(this::createClaimsMap)
                 .getOrElseThrow(() -> new UsernameNotFoundException(ErrorMessage.WRONG_USERNAME.getText()));
     }
 
-    private Map<String, String> createClaimsMap(UserInfo userInfo){
+    private Map<String, String> createClaimsMap(UserInfo userInfo) {
         Map<String, String> claims = new HashMap<>();
         String role = userInfo.getRole();
         Integer id = userInfo.getId();
