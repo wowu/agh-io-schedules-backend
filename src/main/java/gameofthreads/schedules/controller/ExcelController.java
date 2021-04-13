@@ -1,10 +1,10 @@
 package gameofthreads.schedules.controller;
 
+import com.google.gson.Gson;
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.ExcelStorageService;
 import io.vavr.control.Try;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,43 +16,37 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("api/schedule")
 public class ExcelController {
-    @Autowired
-    private ExcelStorageService excelStorageService;
+    private final ExcelStorageService excelStorageService;
 
-    @GetMapping("/")
+    public ExcelController(ExcelStorageService excelStorageService) {
+        this.excelStorageService = excelStorageService;
+    }
+
+    @GetMapping("/getFiles")
     public ResponseEntity<?> getAllFiles(Model model) {
         List<Excel> excels = excelStorageService.getFiles();
         model.addAttribute("excels", excels);
 
-        return ResponseEntity.status(HttpStatus.OK).body("List of files");
+
+        return ResponseEntity.status(HttpStatus.OK).body
+                (new Gson().toJson(excels.stream().map(Excel::getExcelName).collect(Collectors.toList())));
     }
 
-    @PostMapping("/uploadFile")
-    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
-        Try<ResponseEntity<?>> responseEntity = Try.of(() -> excelStorageService.saveFile(file))
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) {
+        Try<ResponseEntity<?>> responseEntity = Try.of(() -> excelStorageService.saveFiles(files))
                 .map(ResponseEntity::ok);
 
         return responseEntity.isSuccess() ?
-                ResponseEntity.status(HttpStatus.OK).body("File uploaded successfully.") :
+                ResponseEntity.status(HttpStatus.OK).body("Files uploaded successfully.") :
                 ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_EXCEL_FILE.asJson());
     }
 
-    @PostMapping("/uploadFiles")
-    public ResponseEntity<?> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files) {
-        for (MultipartFile file : files) {
-            Try<ResponseEntity<?>> responseEntity = Try.of(() -> excelStorageService.saveFile(file))
-                    .map(ResponseEntity::ok);
-            if (!responseEntity.isSuccess()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_EXCEL_FILE.asJson());
-            }
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body("Files uploaded successfully.");
-    }
 
     @GetMapping("/download/{fileId}")
     public ResponseEntity<?> downloadFile(@PathVariable Integer fileId) {

@@ -6,7 +6,7 @@ public enum ErrorMessage {
     WRONG_USERNAME("Wrong username."),
     WRONG_PASSWORD("Wrong password."),
     WRONG_TOKENS_SUBJECT("Wrong token's subject. User doesn't exist."),
-    WRONG_EXCEL_FILE("Wrong file attached."),
+    WRONG_EXCEL_FILE("One of the attached files is wrong."),
     WRONG_DOWNLOAD_ID("Wrong excel file id.");
 
     private final String text;

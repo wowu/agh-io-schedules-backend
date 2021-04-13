@@ -2,7 +2,6 @@ package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.repository.ExcelRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,22 +10,27 @@ import java.util.Optional;
 
 @Service
 public class ExcelStorageService {
-    @Autowired
-    private ExcelRepository excelRepository;
+    private final ExcelRepository excelRepository;
 
-    public Optional<Excel> saveFile(MultipartFile file) {
-        String fileName = file.getOriginalFilename();
+    public ExcelStorageService(ExcelRepository excelRepository) {
+        this.excelRepository = excelRepository;
+    }
 
-        try {
-            if (excelRepository.findByExcelName(fileName).isPresent())
-                return excelRepository.findByExcelName(fileName);
-            Excel excel = new Excel(fileName, file.getContentType(), file.getBytes());
-            return Optional.of(excelRepository.save(excel));
-        } catch (Exception e) {
-            e.printStackTrace();
+    public Optional<Excel> saveFiles(MultipartFile[] files) {
+        for (MultipartFile file : files) {
+            String fileName = file.getOriginalFilename();
+
+            try {
+                if (excelRepository.findByExcelName(fileName).isEmpty()) {
+                    Excel excel = new Excel(fileName, file.getContentType(), file.getBytes());
+                    excelRepository.save(excel);
+                }
+            } catch (Exception e) {
+                return Optional.empty();
+            }
         }
 
-        return Optional.empty();
+        return Optional.of(new Excel());
     }
 
     public Optional<Excel> getFile(Integer fileId) {
