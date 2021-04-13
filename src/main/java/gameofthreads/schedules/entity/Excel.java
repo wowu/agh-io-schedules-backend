@@ -11,8 +11,8 @@ public class Excel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    private String excelname;
-    private String exceltype;
+    private String excelName;
+    private String excelType;
 
     @Lob
     @Type(type = "org.hibernate.type.ImageType")
@@ -22,17 +22,17 @@ public class Excel {
     }
 
     public Excel(String excelName, String excelType, byte[] data) {
-        this.excelname = excelName;
-        this.exceltype = excelType;
+        this.excelName = excelName;
+        this.excelType = excelType;
         this.data = data;
     }
 
     public String getExcelName() {
-        return excelname;
+        return excelName;
     }
 
     public String getExcelType() {
-        return exceltype;
+        return excelType;
     }
 
     public byte[] getData() {

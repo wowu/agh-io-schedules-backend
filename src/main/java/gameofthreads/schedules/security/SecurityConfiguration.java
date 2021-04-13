@@ -24,6 +24,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests(config ->
                         config
                                 .antMatchers("/api/token/*").permitAll()
+                                .antMatchers("/api/schedule/*").hasAuthority("SCOPE_ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer()
