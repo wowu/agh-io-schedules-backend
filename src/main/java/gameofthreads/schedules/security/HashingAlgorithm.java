@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class HashingAlgorithm {
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new Argon2PasswordEncoder();
     }
 
