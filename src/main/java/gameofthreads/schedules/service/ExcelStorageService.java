@@ -42,7 +42,7 @@ public class ExcelStorageService {
             try {
                 Excel excel = new Excel(fileName, file.getContentType(), file.getBytes());
                 Optional<Schedule> optSchedule = checkCollisions(fileName, excel);
-                if (collisions.isEmpty() && optSchedule.isPresent() && excelRepository.findByExcelName(fileName).isEmpty()) {
+                if (collisions.length() == 0 && optSchedule.isPresent() && excelRepository.findByExcelName(fileName).isEmpty()) {
                     schedules.add(optSchedule.get());
                     excelRepository.save(excel);
                 }
