@@ -1,6 +1,7 @@
 package gameofthreads.schedules.entity;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -14,7 +15,7 @@ public class ConferenceEntity {
     @JoinColumn(name = "schedule_id")
     private ScheduleEntity schedule;
 
-    @OneToMany(mappedBy = "conference")
+    @OneToMany(mappedBy = "conference", cascade = CascadeType.ALL)
     private List<MeetingEntity> meetingEntities;
 
     public ConferenceEntity() {
@@ -22,6 +23,7 @@ public class ConferenceEntity {
 
     public ConferenceEntity(ScheduleEntity schedule) {
         this.schedule = schedule;
+        this.meetingEntities = new ArrayList<>();
     }
 
     public Integer getId() {

@@ -6,44 +6,40 @@ import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
-import gameofthreads.schedules.repository.ConferenceRepository;
-import gameofthreads.schedules.repository.MeetingRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ScheduleStorageService {
     private final ScheduleRepository scheduleRepository;
-    private final ConferenceRepository conferenceRepository;
-    private final MeetingRepository meetingRepository;
 
-    public ScheduleStorageService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository, MeetingRepository meetingRepository) {
+    public ScheduleStorageService(ScheduleRepository scheduleRepository) {
         this.scheduleRepository = scheduleRepository;
-        this.conferenceRepository = conferenceRepository;
-        this.meetingRepository = meetingRepository;
     }
 
+    @Transactional
     public void saveScheduleToDatabase(Schedule schedule) {
         ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName());
-        scheduleRepository.save(scheduleEntity);
         for (Conference conference : schedule.getConferences()) {
-            saveConferenceToDatabase(conference, scheduleEntity);
+            addConferenceToSchedule(conference, scheduleEntity);
         }
+        scheduleRepository.save(scheduleEntity);
     }
 
-    private void saveConferenceToDatabase(Conference conference, ScheduleEntity scheduleEntity) {
+    public void addConferenceToSchedule(Conference conference, ScheduleEntity scheduleEntity) {
         ConferenceEntity conferenceEntity = new ConferenceEntity(scheduleEntity);
-        conferenceRepository.save(conferenceEntity);
         for (Meeting meeting : conference.getMeetings()) {
-            saveMeetingToDatabase(meeting, conferenceEntity);
+            addMeetingToConference(meeting, conferenceEntity);
         }
+        scheduleEntity.getConferences().add(conferenceEntity);
     }
 
-    private void saveMeetingToDatabase(Meeting meeting, ConferenceEntity conferenceEntity) {
+    public void addMeetingToConference(Meeting meeting, ConferenceEntity conferenceEntity) {
         MeetingEntity meetingEntity = new MeetingEntity(conferenceEntity, meeting.getDateStart(),
                 meeting.getDateEnd(), meeting.getSubject(), meeting.getGroup(), meeting.getLecturer(),
                 meeting.getType(), meeting.getLengthInHours(), meeting.getFormat(), meeting.getRoom());
 
-        meetingRepository.save(meetingEntity);
+        conferenceEntity.getMeetingEntities().add(meetingEntity);
     }
 }

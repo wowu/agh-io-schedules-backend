@@ -6,50 +6,61 @@ import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.repository.ExcelRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ExcelStorageService {
     private final ExcelRepository excelRepository;
-    private final StringBuilder collisions = new StringBuilder();
+    private StringBuilder collisions = new StringBuilder();
+    private final List<Excel> approvedExcels = new ArrayList<>();
 
     public ExcelStorageService(ExcelRepository excelRepository) {
         this.excelRepository = excelRepository;
     }
 
-    private Optional<Schedule> checkCollisions(String fileName, Excel excel) throws IOException {
+    public Optional<Schedule> checkCollisions(String fileName, Excel excel) throws IOException {
         Parser parser = new Parser(fileName, excel.getData());
         Optional<Schedule> optSchedule = parser.parse();
         List<Excel> excels = excelRepository.findAll();
         if (optSchedule.isPresent()) {
             CollisionDetector collisionDetector = new CollisionDetector(optSchedule.get());
             collisionDetector.loadSchedules(excels);
-            collisions.append(collisionDetector.compareSchedules());
+            collisionDetector.loadSchedules(approvedExcels);
+            collisions = collisionDetector.compareSchedules();
             return optSchedule;
         }
         return Optional.empty();
     }
 
-    public Optional<List<Schedule>> saveFiles(MultipartFile[] files) {
+    @Transactional
+    public Optional<List<Schedule>> saveFiles(MultipartFile[] files, StringBuilder resultCollisions) {
         List<Schedule> schedules = new ArrayList<>();
+        List<Excel> excels = new ArrayList<>();
+        HashSet<String> existingExcels = new HashSet<>(excelRepository.findAllExcelNames());
+
         for (MultipartFile file : files) {
             String fileName = file.getOriginalFilename();
             try {
                 Excel excel = new Excel(fileName, file.getContentType(), file.getBytes());
                 Optional<Schedule> optSchedule = checkCollisions(fileName, excel);
-                if (collisions.length() == 0 && optSchedule.isPresent() && excelRepository.findByExcelName(fileName).isEmpty()) {
+                resultCollisions.append(collisions);
+                if (collisions.length() == 0 && optSchedule.isPresent() && !existingExcels.contains(fileName)) {
                     schedules.add(optSchedule.get());
-                    excelRepository.save(excel);
+                    approvedExcels.add(excel);
+                    excels.add(excel);
                 }
             } catch (Exception e) {
                 return Optional.empty();
             }
         }
+        excelRepository.saveAll(excels);
 
         return Optional.of(schedules);
     }
@@ -62,7 +73,4 @@ public class ExcelStorageService {
         return excelRepository.findAll();
     }
 
-    public StringBuilder getCollisions() {
-        return collisions;
-    }
 }

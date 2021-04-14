@@ -1,6 +1,7 @@
 package gameofthreads.schedules.entity;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -13,7 +14,7 @@ public class ScheduleEntity {
     @Column(name = "file_name", unique = true)
     private String fileName;
 
-    @OneToMany(mappedBy = "schedule")
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
     private List<ConferenceEntity> conferenceEntities;
 
     public ScheduleEntity() {
@@ -22,6 +23,7 @@ public class ScheduleEntity {
 
     public ScheduleEntity(String fileName) {
         this.fileName = fileName;
+        this.conferenceEntities = new ArrayList<>();
     }
 
     public Integer getId() {
