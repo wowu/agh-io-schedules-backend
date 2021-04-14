@@ -1,10 +1,11 @@
 package gameofthreads.schedules.controller;
 
 import com.google.gson.Gson;
+import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.ExcelStorageService;
-import io.vavr.control.Try;
+import gameofthreads.schedules.service.ScheduleStorageService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,15 +17,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("api/schedule")
 public class ExcelController {
     private final ExcelStorageService excelStorageService;
+    private final ScheduleStorageService scheduleStorageService;
 
-    public ExcelController(ExcelStorageService excelStorageService) {
+    public ExcelController(ExcelStorageService excelStorageService, ScheduleStorageService scheduleStorageService) {
         this.excelStorageService = excelStorageService;
+        this.scheduleStorageService = scheduleStorageService;
     }
 
     @GetMapping("/getFiles")
@@ -39,12 +43,14 @@ public class ExcelController {
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) {
-        Try<ResponseEntity<?>> responseEntity = Try.of(() -> excelStorageService.saveFiles(files))
-                .map(ResponseEntity::ok);
+        StringBuilder collisions = new StringBuilder();
+        Optional<List<Schedule>> schedules = excelStorageService.saveFiles(files, collisions);
+        schedules.ifPresent(scheduleList -> scheduleList.forEach(scheduleStorageService::saveScheduleToDatabase));
 
-        return responseEntity.isSuccess() ?
-                ResponseEntity.status(HttpStatus.OK).body("Files uploaded successfully.") :
-                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_EXCEL_FILE.asJson());
+        if (schedules.isEmpty() || !(collisions.length() == 0))
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(collisions);
+
+        return ResponseEntity.status(HttpStatus.OK).body("Files uploaded successfully.");
     }
 
 

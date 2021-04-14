@@ -11,11 +11,14 @@ public class Excel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "excel_name")
     private String excelName;
+    @Column(name = "excel_type")
     private String excelType;
 
     @Lob
     @Type(type = "org.hibernate.type.ImageType")
+    @Column(name = "data")
     private byte[] data;
 
     public Excel() {
