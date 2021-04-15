@@ -5,6 +5,7 @@ import gameofthreads.schedules.domain.Parser;
 import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.entity.ScheduleEntity;
+import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.ExcelRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,8 @@ public class ExcelStorageService {
     }
 
     public Optional<Schedule> checkCollisions(String fileName, Excel excel) throws IOException {
+        if (!fileName.contains(".xlsx") && !fileName.contains(".xls"))
+            return Optional.empty();
         Parser parser = new Parser(fileName, excel.getData());
         Optional<Schedule> optSchedule = parser.parse();
         List<Excel> excels = excelRepository.findAll();
@@ -65,6 +68,8 @@ public class ExcelStorageService {
                     approvedExcels.add(excel);
                     excels.add(excel);
                 }
+                if (optSchedule.isEmpty())
+                    return Optional.of(new StringBuilder(ErrorMessage.WRONG_EXCEL_FILE.asJson()));
             } catch (Exception e) {
                 return Optional.empty();
             }
