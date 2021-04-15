@@ -5,7 +5,7 @@ import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.ExcelStorageService;
-import gameofthreads.schedules.service.ScheduleStorageService;
+import gameofthreads.schedules.service.ScheduleService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
 @RequestMapping("api/schedule")
 public class ExcelController {
     private final ExcelStorageService excelStorageService;
-    private final ScheduleStorageService scheduleStorageService;
+    private final ScheduleService scheduleService;
 
-    public ExcelController(ExcelStorageService excelStorageService, ScheduleStorageService scheduleStorageService) {
+    public ExcelController(ExcelStorageService excelStorageService, ScheduleService scheduleService) {
         this.excelStorageService = excelStorageService;
-        this.scheduleStorageService = scheduleStorageService;
+        this.scheduleService = scheduleService;
     }
 
     @GetMapping("/getFiles")
@@ -45,7 +45,7 @@ public class ExcelController {
     public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) {
         StringBuilder collisions = new StringBuilder();
         Optional<List<Schedule>> schedules = excelStorageService.saveFiles(files, collisions);
-        schedules.ifPresent(scheduleList -> scheduleList.forEach(scheduleStorageService::saveScheduleToDatabase));
+        schedules.ifPresent(scheduleList -> scheduleList.forEach(scheduleService::saveScheduleToDatabase));
 
         if (schedules.isEmpty() || !(collisions.length() == 0))
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(collisions);

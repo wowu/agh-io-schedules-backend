@@ -17,14 +17,14 @@ public class SubscriptionController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addSubscriptions(@RequestBody AddSubscriptionRequest requestData){
-        Either<String, Boolean> result = subscriptionService.addSubscription(requestData);
+        Either<String, Boolean> result = subscriptionService.addSubscriptions(requestData);
 
         return result.isRight()?
                 ResponseEntity.ok(true):
                 ResponseEntity.badRequest().body(result.getLeft());
     }
 
-    @GetMapping("/add/{public_link}/{email}")
+    @PostMapping("/add/{public_link}/{email}")
     public ResponseEntity<?> addSubscription(@PathVariable(name = "public_link") String publicLink,
                                              @PathVariable(name = "email") String email){
 

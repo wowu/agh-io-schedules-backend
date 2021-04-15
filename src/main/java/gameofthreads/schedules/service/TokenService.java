@@ -2,7 +2,7 @@ package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.domain.UserInfo;
 import gameofthreads.schedules.dto.request.AuthRequest;
-import gameofthreads.schedules.entity.User;
+import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.UserRepository;
 import io.vavr.control.Try;
@@ -27,8 +27,8 @@ public class TokenService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(username).orElseThrow();
-        return new UserInfo(user);
+        UserEntity userEntity = userRepository.findByEmail(username).orElseThrow();
+        return new UserInfo(userEntity);
     }
 
     public Map<String, String> authenticate(AuthRequest authRequest) {

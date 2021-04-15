@@ -10,17 +10,21 @@ import gameofthreads.schedules.repository.ScheduleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
-public class ScheduleStorageService {
+public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
 
-    public ScheduleStorageService(ScheduleRepository scheduleRepository) {
+    public ScheduleService(ScheduleRepository scheduleRepository) {
         this.scheduleRepository = scheduleRepository;
     }
 
     @Transactional
     public void saveScheduleToDatabase(Schedule schedule) {
-        ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName());
+        ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink());
         for (Conference conference : schedule.getConferences()) {
             addConferenceToSchedule(conference, scheduleEntity);
         }
@@ -28,7 +32,7 @@ public class ScheduleStorageService {
     }
 
     public void addConferenceToSchedule(Conference conference, ScheduleEntity scheduleEntity) {
-        ConferenceEntity conferenceEntity = new ConferenceEntity(scheduleEntity, conference.getPublicLink());
+        ConferenceEntity conferenceEntity = new ConferenceEntity(scheduleEntity);
         for (Meeting meeting : conference.getMeetings()) {
             addMeetingToConference(meeting, conferenceEntity);
         }
@@ -42,4 +46,12 @@ public class ScheduleStorageService {
 
         conferenceEntity.getMeetingEntities().add(meetingEntity);
     }
+
+    public Set<String> findPublicLinks(){
+        return scheduleRepository.findAll()
+                .stream()
+                .map(ScheduleEntity::getPublicLink)
+                .collect(Collectors.toSet());
+    }
+
 }

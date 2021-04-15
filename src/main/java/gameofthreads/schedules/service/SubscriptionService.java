@@ -1,10 +1,10 @@
 package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.dto.request.AddSubscriptionRequest;
-import gameofthreads.schedules.entity.ConferenceEntity;
+import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.entity.SubscriptionEntity;
 import gameofthreads.schedules.message.ErrorMessage;
-import gameofthreads.schedules.repository.ConferenceRepository;
+import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.repository.SubscriptionRepository;
 import gameofthreads.schedules.util.Validator;
 import io.vavr.control.Either;
@@ -17,23 +17,23 @@ import java.util.stream.Collectors;
 
 @Service
 public class SubscriptionService {
-    private final ConferenceRepository conferenceRepository;
+    private final ScheduleRepository scheduleRepository;
     private final SubscriptionRepository subscriptionRepository;
 
-    public SubscriptionService(ConferenceRepository conferenceRepository, SubscriptionRepository subscriptionRepository) {
-        this.conferenceRepository = conferenceRepository;
+    public SubscriptionService(ScheduleRepository scheduleRepository, SubscriptionRepository subscriptionRepository) {
+        this.scheduleRepository = scheduleRepository;
         this.subscriptionRepository = subscriptionRepository;
     }
 
     @Transactional
-    public Either<String, Boolean> addSubscription(AddSubscriptionRequest requestData){
-        if(!Validator.validateEmailList(requestData.emailList)){
+    public Either<String, Boolean> addSubscriptions(AddSubscriptionRequest requestData) {
+        if (!Validator.validateEmailList(requestData.emailList)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL_LIST.asJson());
         }
 
-        Optional<ConferenceEntity> conferenceEntity = conferenceRepository.findById(requestData.conferenceId);
+        Optional<ScheduleEntity> conferenceEntity = scheduleRepository.findById(requestData.scheduleId);
 
-        if(conferenceEntity.isEmpty()){
+        if (conferenceEntity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
         }
 
@@ -43,17 +43,17 @@ public class SubscriptionService {
                 .collect(Collectors.toList());
 
         subscriptionRepository.saveAll(subscriptionEntities);
-        return  Either.right(true);
+        return Either.right(true);
     }
 
-    public Either<String, Boolean> addSubscriptionUsingLink(String publicLink, String email){
-        if(!Validator.validateEmail(email)){
+    public Either<String, Boolean> addSubscriptionUsingLink(String publicLink, String email) {
+        if (!Validator.validateEmail(email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
-        Optional<ConferenceEntity> conferenceEntity = conferenceRepository.findByPublicLink(publicLink);
+        Optional<ScheduleEntity> conferenceEntity = scheduleRepository.findByPublicLink(publicLink);
 
-        if(conferenceEntity.isEmpty()){
+        if (conferenceEntity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
         }
 

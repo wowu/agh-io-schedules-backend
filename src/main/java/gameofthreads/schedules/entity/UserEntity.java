@@ -4,14 +4,19 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "my_user")
-public class User {
+public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
-    @JoinColumn(name = "person_id")
-    private Person person;
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "firstname")
+    private String firstname;
+
+    @Column(name = "lastname")
+    private String lastname;
 
     @Column(name = "password")
     private String password;
@@ -33,7 +38,7 @@ public class User {
     }
 
     public String getUsername() {
-        return person.getEmail();
+        return email;
     }
 
 }

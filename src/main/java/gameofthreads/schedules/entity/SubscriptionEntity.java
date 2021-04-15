@@ -13,15 +13,15 @@ public class SubscriptionEntity {
     private String email;
 
     @ManyToOne
-    @JoinColumn(name = "conference_id")
-    private ConferenceEntity conference;
+    @JoinColumn(name = "schedule_id")
+    private ScheduleEntity schedule;
 
-    public SubscriptionEntity(String email, ConferenceEntity conference) {
+    public SubscriptionEntity(String email, ScheduleEntity schedule) {
         this.email = email;
-        this.conference = conference;
+        this.schedule = schedule;
     }
 
-    public SubscriptionEntity(){
+    public SubscriptionEntity() {
     }
 
 }
