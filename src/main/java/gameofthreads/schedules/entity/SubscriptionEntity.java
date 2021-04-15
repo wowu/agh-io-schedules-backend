@@ -12,6 +12,9 @@ public class SubscriptionEntity {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "active")
+    public boolean active = true;
+
     @ManyToOne
     @JoinColumn(name = "schedule_id")
     private ScheduleEntity schedule;
@@ -22,6 +25,10 @@ public class SubscriptionEntity {
     }
 
     public SubscriptionEntity() {
+    }
+
+    public ScheduleEntity getSchedule() {
+        return schedule;
     }
 
 }

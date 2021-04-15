@@ -25,7 +25,8 @@ CREATE table subscription
 (
     id          SERIAL PRIMARY KEY,
     email       TEXT    NOT NULL,
-    schedule_id INTEGER NOT NULL
+    schedule_id INTEGER NOT NULL,
+    active      BOOLEAN NOT NULL
 );
 
 ALTER TABLE subscription

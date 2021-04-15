@@ -26,7 +26,7 @@ public class SubscriptionService {
     }
 
     @Transactional
-    public Either<String, Boolean> addSubscriptions(AddSubscriptionRequest requestData) {
+    public Either<String, Boolean> addByAdmin(AddSubscriptionRequest requestData) {
         if (!Validator.validateEmailList(requestData.emailList)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL_LIST.asJson());
         }
@@ -46,7 +46,7 @@ public class SubscriptionService {
         return Either.right(true);
     }
 
-    public Either<String, Boolean> addSubscriptionUsingLink(String publicLink, String email) {
+    public Either<String, Boolean> addUsingLink(String publicLink, String email) {
         if (!Validator.validateEmail(email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }

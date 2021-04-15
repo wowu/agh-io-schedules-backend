@@ -16,19 +16,17 @@ public class SubscriptionController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addSubscriptions(@RequestBody AddSubscriptionRequest requestData){
-        Either<String, Boolean> result = subscriptionService.addSubscriptions(requestData);
+    public ResponseEntity<?> addByAdmin(@RequestBody AddSubscriptionRequest requestData){
+        Either<String, Boolean> result = subscriptionService.addByAdmin(requestData);
 
         return result.isRight()?
                 ResponseEntity.ok(true):
                 ResponseEntity.badRequest().body(result.getLeft());
     }
 
-    @PostMapping("/add/{public_link}/{email}")
-    public ResponseEntity<?> addSubscription(@PathVariable(name = "public_link") String publicLink,
-                                             @PathVariable(name = "email") String email){
-
-        Either<String, Boolean> result = subscriptionService.addSubscriptionUsingLink(publicLink, email);
+    @PostMapping("/addByLink")
+    public ResponseEntity<?> addUsingLink(@RequestParam String publicLink, @RequestParam String email){
+        Either<String, Boolean> result = subscriptionService.addUsingLink(publicLink, email);
 
         return result.isRight()?
                 ResponseEntity.ok(true):
