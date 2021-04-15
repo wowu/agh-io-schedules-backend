@@ -16,4 +16,12 @@ public class SubscriptionEntity {
     @JoinColumn(name = "conference_id")
     private ConferenceEntity conference;
 
+    public SubscriptionEntity(String email, ConferenceEntity conference) {
+        this.email = email;
+        this.conference = conference;
+    }
+
+    public SubscriptionEntity(){
+    }
+
 }

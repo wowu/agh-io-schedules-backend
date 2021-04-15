@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SubscriptionService extends JpaRepository<SubscriptionEntity,Integer> {
+public interface SubscriptionRepository extends JpaRepository<SubscriptionEntity,Integer> {
 }
