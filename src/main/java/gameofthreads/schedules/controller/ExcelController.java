@@ -43,12 +43,10 @@ public class ExcelController {
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) {
-        StringBuilder collisions = new StringBuilder();
-        Optional<List<Schedule>> schedules = excelStorageService.saveFiles(files, collisions);
-        schedules.ifPresent(scheduleList -> scheduleList.forEach(scheduleStorageService::saveScheduleToDatabase));
+        Optional<StringBuilder> collisions = excelStorageService.saveFiles(files, scheduleStorageService);
 
-        if (schedules.isEmpty() || !(collisions.length() == 0))
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(collisions);
+        if (collisions.isPresent() && !(collisions.get().length() == 0))
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(collisions.get());
 
         return ResponseEntity.status(HttpStatus.OK).body("Files uploaded successfully.");
     }
