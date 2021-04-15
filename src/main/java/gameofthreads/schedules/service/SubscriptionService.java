@@ -33,17 +33,32 @@ public class SubscriptionService {
 
         Optional<ConferenceEntity> conferenceEntity = conferenceRepository.findById(requestData.conferenceId);
 
-        if(conferenceEntity.isPresent()){
-            List<SubscriptionEntity> subscriptionEntities = requestData.emailList
-                    .stream()
-                    .map(email -> new SubscriptionEntity(email, conferenceEntity.get()))
-                    .collect(Collectors.toList());
-
-            subscriptionRepository.saveAll(subscriptionEntities);
-            return  Either.right(true);
+        if(conferenceEntity.isEmpty()){
+            return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
         }
 
-        return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
+        List<SubscriptionEntity> subscriptionEntities = requestData.emailList
+                .stream()
+                .map(email -> new SubscriptionEntity(email, conferenceEntity.get()))
+                .collect(Collectors.toList());
+
+        subscriptionRepository.saveAll(subscriptionEntities);
+        return  Either.right(true);
+    }
+
+    public Either<String, Boolean> addSubscriptionUsingLink(String publicLink, String email){
+        if(!Validator.validateEmail(email)){
+            return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
+        }
+
+        Optional<ConferenceEntity> conferenceEntity = conferenceRepository.findByPublicLink(publicLink);
+
+        if(conferenceEntity.isEmpty()){
+            return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
+        }
+
+        subscriptionRepository.save(new SubscriptionEntity(email, conferenceEntity.get()));
+        return Either.right(true);
     }
 
 }

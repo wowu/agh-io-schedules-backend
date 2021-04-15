@@ -13,7 +13,7 @@ public class Validator {
                 .filter(Validator::validateEmail)
                 .count();
 
-        return correctEmail == emails.size() - 1;
+        return correctEmail == emails.size();
     }
 
     public static boolean validateEmail(String email){

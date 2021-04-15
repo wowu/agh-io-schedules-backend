@@ -28,7 +28,7 @@ public class ScheduleStorageService {
     }
 
     public void addConferenceToSchedule(Conference conference, ScheduleEntity scheduleEntity) {
-        ConferenceEntity conferenceEntity = new ConferenceEntity(scheduleEntity);
+        ConferenceEntity conferenceEntity = new ConferenceEntity(scheduleEntity, conference.getPublicLink());
         for (Meeting meeting : conference.getMeetings()) {
             addMeetingToConference(meeting, conferenceEntity);
         }

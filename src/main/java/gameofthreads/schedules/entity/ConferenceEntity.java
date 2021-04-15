@@ -28,8 +28,9 @@ public class ConferenceEntity {
     public ConferenceEntity() {
     }
 
-    public ConferenceEntity(ScheduleEntity schedule) {
+    public ConferenceEntity(ScheduleEntity schedule, String publicLink) {
         this.schedule = schedule;
+        this.publicLink = publicLink;
         this.meetingEntities = new ArrayList<>();
     }
 
