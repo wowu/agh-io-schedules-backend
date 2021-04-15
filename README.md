@@ -62,3 +62,78 @@ If server return HTTP 401, it means that refresh token is expired.
 Client need to be authenticated again.
 
 ```
+
+<h3>Schedule uploading/downloading</h3>
+
+```shell
+1. Uploading schedule
+
+HTTP Method : POST
+HTTP endpoint : /api/schedule/upload
+
+RequestBody : {
+ "files": ...
+}
+
+(All files accepted)
+ResponseBody: {
+ "message": "Files uploaded successfully."
+}
+
+(Partial/None files accepted)
+ResponseBody: {
+ "schedules": [
+    {
+        "schedule": ...
+        "conflicts": [
+            {
+              "schedule": ...
+              "conflict meetings": [
+                  {
+                    "reason": ...
+                    "meeting": {
+                        "date start": ...
+                        ...
+                        ...
+                    }
+                  },
+                  ...
+              ]
+            },
+            ...
+        ]
+    }, 
+    ...
+ ]
+}
+
+2. Downloading schedule
+
+HTTP Method : GET
+HTTP endpoint : /api/schedule/download/{fileId}
+
+RequestBody : {
+}
+
+(Correct Id)
+ResponseBody: {
+  <data to be downloaded>
+}
+
+(Wrong Id)
+ResponseBody: {
+ "ERROR": "Wrong excel file id."
+}
+
+3. List of schedules (names of Excels)
+
+HTTP Method : GET
+HTTP endpoint : /api/schedule/getFiles
+
+RequestBody : {
+}
+
+ResponseBody: {
+  [List of files]
+}
+```

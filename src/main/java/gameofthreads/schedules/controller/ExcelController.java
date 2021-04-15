@@ -48,7 +48,7 @@ public class ExcelController {
         if (collisions.isPresent() && !(collisions.get().length() == 0))
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(collisions.get());
 
-        return ResponseEntity.status(HttpStatus.OK).body("Files uploaded successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body("{\"message\" : \"Files uploaded successfully.\"}");
     }
 
 
