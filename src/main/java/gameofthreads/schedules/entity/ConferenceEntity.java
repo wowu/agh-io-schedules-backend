@@ -3,6 +3,7 @@ package gameofthreads.schedules.entity;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "conference")
@@ -17,6 +18,12 @@ public class ConferenceEntity {
 
     @OneToMany(mappedBy = "conference", cascade = CascadeType.ALL)
     private List<MeetingEntity> meetingEntities;
+
+    @OneToMany(mappedBy = "conference")
+    private Set<SubscriptionEntity> subscriptions;
+
+    @Column(name = "public_link")
+    private String publicLink;
 
     public ConferenceEntity() {
     }
@@ -37,4 +44,9 @@ public class ConferenceEntity {
     public List<MeetingEntity> getMeetingEntities() {
         return meetingEntities;
     }
+
+    public String getPublicLink() {
+        return publicLink;
+    }
+
 }
