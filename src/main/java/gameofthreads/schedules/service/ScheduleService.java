@@ -8,9 +8,7 @@ import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,13 +20,12 @@ public class ScheduleService {
         this.scheduleRepository = scheduleRepository;
     }
 
-    @Transactional
-    public void saveScheduleToDatabase(Schedule schedule) {
+    public ScheduleEntity getScheduleEntity(Schedule schedule) {
         ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink());
         for (Conference conference : schedule.getConferences()) {
             addConferenceToSchedule(conference, scheduleEntity);
         }
-        scheduleRepository.save(scheduleEntity);
+        return scheduleEntity;
     }
 
     public void addConferenceToSchedule(Conference conference, ScheduleEntity scheduleEntity) {

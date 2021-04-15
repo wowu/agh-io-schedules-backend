@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class CollisionDetector {
-    final static String dashes = "--------------------";
     List<Schedule> schedules;
 
     public CollisionDetector(Schedule schedule) {
@@ -24,27 +23,31 @@ public class CollisionDetector {
     }
 
     public StringBuilder compareSchedules() {
-        StringBuilder invalidSchedules = new StringBuilder();
-        boolean noCollisions = true;
+        StringBuilder schedulesCollisions =
+                new StringBuilder("{\"schedule\": \"" + schedules.get(0).getFileName() + "\"," +
+                        "\"conflicts\": [");
 
+        boolean firstConflict = true;
         StringBuilder response =
-                new StringBuilder("\n" + dashes + " " + schedules.get(0).getFileName() + " " + dashes);
+                new StringBuilder("");
         for (Schedule schedule : schedules) {
             boolean sameSchedule = schedule.equals(schedules.get(0));
-            StringBuilder scheduleResponse = new StringBuilder(String.format("\n%8s", ""))
-                    .append(dashes).append(" ")
-                    .append(schedule.getFileName()).append(" ").append(dashes);
+            StringBuilder scheduleResponse =
+                    new StringBuilder("{\"schedule\": \"" + schedule.getFileName() + "\"," +
+                            "\"conflict meetings\": [");
             boolean result = schedule.compareSchedules(schedule, scheduleResponse, sameSchedule);
             if (!result) {
-                noCollisions = false;
+                if (!firstConflict)
+                    scheduleResponse.append(",");
+                scheduleResponse.append("]}");
+                firstConflict = false;
                 response.append(scheduleResponse);
             }
 
         }
 
-        if (!noCollisions)
-            invalidSchedules.append(response);
+        schedulesCollisions.append(response).append("]}");
 
-        return invalidSchedules;
+        return schedulesCollisions;
     }
 }
