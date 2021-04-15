@@ -18,19 +18,20 @@ public class Conference {
     public boolean compareConference(Conference otherConference, StringBuilder result, boolean sameSchedule) {
         boolean noCollisions = true;
         for (Meeting meeting : meetings) {
-            boolean noCollisionsMeeting = true;
-            StringBuilder response =
-                    new StringBuilder(String.format("\n%17s %s", "-", meeting.toString()));
+            StringBuilder response = new StringBuilder();
             for (Meeting otherMeeting : otherConference.getMeetings()) {
-                if (!sameSchedule || !meeting.equals(otherMeeting)) {
-                    if (!meeting.compareMeeting(otherMeeting, response)) {
-                        noCollisionsMeeting = false;
+                if (!sameSchedule ||
+                        !(meetings.indexOf(meeting) >= otherConference.getMeetings().indexOf(otherMeeting))) {
+                    boolean noCollisionsMeeting = meeting.compareMeeting(otherMeeting, response);
+                    if (!noCollisions && !noCollisionsMeeting)
+                        response.append(",");
+                    if (!noCollisionsMeeting) {
+                        result.append(response);
+                        noCollisions = false;
                     }
+
+
                 }
-            }
-            if (!noCollisionsMeeting) {
-                result.append(response);
-                noCollisions = false;
             }
         }
         return noCollisions;

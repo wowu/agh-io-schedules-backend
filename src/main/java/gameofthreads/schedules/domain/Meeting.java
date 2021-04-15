@@ -56,10 +56,9 @@ public class Meeting {
             }
 
             if (reasons.length() != 0) {
-                result.append(String.format("\n%25s ", "-"))
-                        .append(otherMeeting.toString())
-                        .append("[POWODY:")
-                        .append(reasons).append("]");
+                result.append("{\"reason\": \"").append(reasons.toString().trim()).append("\",")
+                        .append("\"meeting\": ").append(this.asJson()).append(",\"conflict meeting\": ")
+                        .append(otherMeeting.asJson()).append("}");
             }
 
             return reasons.length() == 0;
@@ -72,6 +71,18 @@ public class Meeting {
         return dateStart.format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"))
                 + "-" + dateEnd.format(DateTimeFormatter.ofPattern("HH:mm"))
                 + " - " + subject + " - " + lecturer + " - Sala " + room;
+    }
+
+    public String asJson() {
+        return "{\"date start\": \"" + dateStart + "\"," +
+                "\"date end\": \"" + dateEnd + "\"," +
+                "\"subject\": \"" + subject + "\"," +
+                "\"group\": \"" + group + "\"," +
+                "\"lecturer\": \"" + lecturer + "\"," +
+                "\"type\": \"" + type + "\"," +
+                "\"length in hours\": \"" + lengthInHours + "\"," +
+                "\"format\": \"" + format + "\"," +
+                "\"room\": \"" + room + "\"}";
     }
 
     public Conference getConference() {
