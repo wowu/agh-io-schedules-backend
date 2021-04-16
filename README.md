@@ -213,7 +213,7 @@ ResponseBody: {
 2. Getting all schedules
 
 HTTP Method : GET
-HTTP endpoint : /api/schedule/getSchedules
+HTTP endpoint : /api/schedule/getAll
 
 (Successful)
 ResponseBody: {
