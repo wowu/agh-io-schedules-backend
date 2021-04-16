@@ -29,7 +29,7 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
-    @GetMapping("/getSchedules")
+    @GetMapping("/getAll")
     public ResponseEntity<?> getAllSchedules() {
         Optional<String> schedules = scheduleService.getAllSchedulesInJson();
 
