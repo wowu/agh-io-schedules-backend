@@ -140,6 +140,7 @@ ResponseBody: {
 
 
 <h3>Subscriptions</h3>
+
 ```shell
 1. Add subscriptions by admin.
 
