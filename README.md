@@ -137,3 +137,46 @@ ResponseBody: {
   [List of files]
 }
 ```
+
+
+<h3>Subscriptions</h3>
+```shell
+1. Add subscriptions by admin.
+
+HTTP Method : POST
+HTTP endpoint : /api/subscription/add
+
+RequestBody : {
+ "shceduleId" : ...
+ "emailList" : [
+   firstEmail,
+   secondEmail,
+   ...
+ ]
+}
+
+ResponseBody: {
+ true
+}
+
+If emails list contains incorrect email, then you receive HTTP 404 with error message and none of subscription has been created.
+If schedule doesn't exist, you also receive HTTP 404 with error message.
+
+2. Add subscription using public link.
+
+HTTP Method : POST
+HTTP endpoint : /api/subscription/addByLink
+
+RequestParams:
+"publicLink" : ...
+"email" : ...
+
+ResponseBody: {
+ true
+}
+
+
+If emails list contains incorrect email, then you receive HTTP 404 with error message.
+If schedule doesn't exist, you also receive HTTP 404 with error message.
+
+```
