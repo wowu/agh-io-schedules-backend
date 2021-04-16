@@ -48,7 +48,7 @@ public class ExcelStorageService {
     }
 
     @Transactional
-    public Optional<StringBuilder> saveFiles(MultipartFile[] files, ScheduleStorageService scheduleStorageService) {
+    public Optional<StringBuilder> saveFiles(MultipartFile[] files, ScheduleService scheduleService) {
         StringBuilder resultCollisions = new StringBuilder("{\"schedules\": [");
         approvedExcels = new ArrayList<>();
         List<Schedule> schedules = new ArrayList<>();
@@ -76,7 +76,7 @@ public class ExcelStorageService {
         }
 
         List<ScheduleEntity> scheduleEntities =
-                schedules.stream().map(scheduleStorageService::getScheduleEntity).collect(Collectors.toList());
+                schedules.stream().map(scheduleService::getScheduleEntity).collect(Collectors.toList());
         excelRepository.saveAll(excels);
         scheduleRepository.saveAll(scheduleEntities);
         resultCollisions.append("]}");

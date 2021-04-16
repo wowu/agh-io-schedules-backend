@@ -1,7 +1,6 @@
 package gameofthreads.schedules.domain;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Conference {
     private final Schedule schedule;
@@ -44,4 +43,5 @@ public class Conference {
     public List<Meeting> getMeetings() {
         return meetings;
     }
+
 }

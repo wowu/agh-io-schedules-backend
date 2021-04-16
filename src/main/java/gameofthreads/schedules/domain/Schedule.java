@@ -1,15 +1,39 @@
 package gameofthreads.schedules.domain;
 
+import net.bytebuddy.utility.RandomString;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Schedule {
+    private final static Set<String> publicLinkSet = new HashSet<>();
+
     private final String fileName;
+    private final String publicLink;
     private final List<Conference> conferences;
 
     public Schedule(String fileName) {
         this.fileName = fileName;
+        this.publicLink = generatePublicLink();
         this.conferences = new ArrayList<>();
+    }
+
+    private String generatePublicLink(){
+        final int length = 64;
+        String publicLink = RandomString.make(length);
+
+        while(publicLinkSet.contains(publicLink)){
+            publicLink = RandomString.make(length);
+        }
+
+        publicLinkSet.add(publicLink);
+        return publicLink;
+    }
+
+    public static void loadPublicLinks(Set<String> publicLinks){
+        publicLinkSet.addAll(publicLinks);
     }
 
     /**
@@ -34,4 +58,9 @@ public class Schedule {
     public List<Conference> getConferences() {
         return conferences;
     }
+
+    public String getPublicLink() {
+        return publicLink;
+    }
+
 }

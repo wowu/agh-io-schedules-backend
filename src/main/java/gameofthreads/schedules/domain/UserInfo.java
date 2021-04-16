@@ -1,7 +1,7 @@
 package gameofthreads.schedules.domain;
 
 import gameofthreads.schedules.entity.Role;
-import gameofthreads.schedules.entity.User;
+import gameofthreads.schedules.entity.UserEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,11 +15,11 @@ public class UserInfo implements UserDetails {
     private final String password;
     private final Role role;
 
-    public UserInfo(User user) {
-        this.id = user.getId();
-        this.username = user.getUsername();
-        this.password = user.getPassword();
-        this.role = user.getRole();
+    public UserInfo(UserEntity userEntity) {
+        this.id = userEntity.getId();
+        this.username = userEntity.getUsername();
+        this.password = userEntity.getPassword();
+        this.role = userEntity.getRole();
     }
 
     @Override

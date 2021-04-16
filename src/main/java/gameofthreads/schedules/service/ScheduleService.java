@@ -6,13 +6,22 @@ import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
+import gameofthreads.schedules.repository.ScheduleRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
-public class ScheduleStorageService {
+public class ScheduleService {
+    private final ScheduleRepository scheduleRepository;
+
+    public ScheduleService(ScheduleRepository scheduleRepository) {
+        this.scheduleRepository = scheduleRepository;
+    }
 
     public ScheduleEntity getScheduleEntity(Schedule schedule) {
-        ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName());
+        ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink());
         for (Conference conference : schedule.getConferences()) {
             addConferenceToSchedule(conference, scheduleEntity);
         }
@@ -34,4 +43,12 @@ public class ScheduleStorageService {
 
         conferenceEntity.getMeetingEntities().add(meetingEntity);
     }
+
+    public Set<String> findPublicLinks(){
+        return scheduleRepository.findAll()
+                .stream()
+                .map(ScheduleEntity::getPublicLink)
+                .collect(Collectors.toSet());
+    }
+
 }
