@@ -148,7 +148,7 @@ HTTP Method : POST
 HTTP endpoint : /api/subscription/add
 
 RequestBody : {
- "shceduleId" : ...
+ "scheduleId" : ...
  "emailList" : [
    firstEmail,
    secondEmail,
@@ -178,5 +178,64 @@ ResponseBody: {
 
 If emails list contains incorrect email, then you receive HTTP 404 with error message.
 If schedule doesn't exist, you also receive HTTP 404 with error message.
+
+```
+
+<h3>Schedule management</h3>
+
+```shell
+1. Getting specific schedule
+
+HTTP Method : GET
+HTTP endpoint : /api/schedule/get
+
+RequestParams:
+"scheduleId" : ...
+
+(Successful)
+ResponseBody: {
+    "schedule": ...
+    "meetings": [
+        {
+            "date start": ...
+            "date end": ...
+            ...
+        },
+        ...
+    ]
+}
+
+(Unsuccesful)
+ResponseBody: {
+ "ERROR": "Wrong schedule id. Schedule doesn't exist."
+}
+
+2. Getting all schedules
+
+HTTP Method : GET
+HTTP endpoint : /api/schedule/getSchedules
+
+(Successful)
+ResponseBody: {
+  "schedules": [
+      {
+          "schedule": ...
+          "meetings": [
+              {
+                  "date start": ...
+                  "date end": ...
+                  ...
+              },
+              ...
+          ]
+      },
+      ...
+  ]
+}
+
+(Unsuccesful)
+ResponseBody: {
+ "ERROR": "Something did go wrong. Sorry for that!"
+}
 
 ```

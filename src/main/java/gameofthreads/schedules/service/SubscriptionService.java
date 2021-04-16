@@ -34,7 +34,7 @@ public class SubscriptionService {
         Optional<ScheduleEntity> conferenceEntity = scheduleRepository.findById(requestData.scheduleId);
 
         if (conferenceEntity.isEmpty()) {
-            return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
+            return Either.left(ErrorMessage.WRONG_SCHEDULE_ID.asJson());
         }
 
         List<SubscriptionEntity> subscriptionEntities = requestData.emailList
@@ -54,7 +54,7 @@ public class SubscriptionService {
         Optional<ScheduleEntity> conferenceEntity = scheduleRepository.findByPublicLink(publicLink);
 
         if (conferenceEntity.isEmpty()) {
-            return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
+            return Either.left(ErrorMessage.WRONG_SCHEDULE_ID.asJson());
         }
 
         subscriptionRepository.save(new SubscriptionEntity(email, conferenceEntity.get()));
