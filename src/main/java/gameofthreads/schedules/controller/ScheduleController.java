@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,18 +33,18 @@ public class ScheduleController {
     public ResponseEntity<?> getAllSchedules() {
         Optional<String> schedules = scheduleService.getAllSchedulesInJson();
 
-        return schedules.isPresent()?
-                ResponseEntity.status(HttpStatus.OK).body(schedules):
-                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.GENERAL_ERROR.asJson());
+        return schedules.
+                map(s -> ResponseEntity.status(HttpStatus.OK).body(s))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.GENERAL_ERROR.asJson()));
     }
 
     @GetMapping("/get")
     public ResponseEntity<?> getSchedule(@RequestParam Integer scheduleId) {
         Optional<String> schedule = scheduleService.getScheduleInJson(scheduleId);
 
-        return schedule.isPresent()?
-                ResponseEntity.status(HttpStatus.OK).body(schedule):
-                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_SCHEDULE_ID.asJson());
+        return schedule.
+                map(s -> ResponseEntity.status(HttpStatus.OK).body(s))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_SCHEDULE_ID.asJson()));
     }
 
     @GetMapping("/getFiles")
