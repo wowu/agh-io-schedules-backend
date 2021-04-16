@@ -14,8 +14,8 @@ import java.util.Map;
 
 @Component
 public class JwtCreator {
-    private final static long REFRESH_EXPIRATION_TIME = 2700; //45 minutes
-    private final static long ACCESS_EXPIRATION_TIME = 600; // 10 minutes
+    private final static long REFRESH_EXPIRATION_TIME = 300; //5 minutes
+    private final static long ACCESS_EXPIRATION_TIME = 60; // 1 minutes
     private final RSAPublicKey publicKey;
     private final RSAPrivateKey privateKey;
 

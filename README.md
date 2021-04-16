@@ -161,7 +161,7 @@ ResponseBody: {
 }
 
 If emails list contains incorrect email, then you receive HTTP 404 with error message and none of subscription has been created.
-If schedule doesn't exist, you also receive HTTP 404 with error message.
+If schedule does not exist, you also receive HTTP 404 with error message.
 
 2. Add subscription using public link.
 
@@ -175,7 +175,6 @@ RequestParams:
 ResponseBody: {
  true
 }
-
 
 If emails list contains incorrect email, then you receive HTTP 404 with error message.
 If schedule doesn't exist, you also receive HTTP 404 with error message.
