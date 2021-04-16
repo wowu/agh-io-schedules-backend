@@ -1,15 +1,26 @@
 package gameofthreads.schedules.domain;
 
+import gameofthreads.schedules.entity.ConferenceEntity;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Conference {
     private final Schedule schedule;
     private final List<Meeting> meetings;
 
-    Conference(Schedule schedule) {
+    public Conference(Schedule schedule) {
         this.schedule = schedule;
         this.meetings = new ArrayList<>();
     }
+
+    public Conference(Schedule schedule, ConferenceEntity conferenceEntity) {
+        this.schedule = schedule;
+        this.meetings = conferenceEntity.getMeetingEntities().stream().
+                map(meetingEntity -> new Meeting(this, meetingEntity))
+                .collect(Collectors.toList());
+    }
+
 
     /**
      * returns true if conferences have no collisions

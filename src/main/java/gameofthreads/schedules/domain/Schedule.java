@@ -1,11 +1,13 @@
 package gameofthreads.schedules.domain;
 
+import gameofthreads.schedules.entity.ScheduleEntity;
 import net.bytebuddy.utility.RandomString;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Schedule {
     private final static Set<String> publicLinkSet = new HashSet<>();
@@ -18,6 +20,14 @@ public class Schedule {
         this.fileName = fileName;
         this.publicLink = generatePublicLink();
         this.conferences = new ArrayList<>();
+    }
+
+    public Schedule(ScheduleEntity scheduleEntity) {
+        this.fileName = scheduleEntity.getFileName();
+        this.publicLink = scheduleEntity.getPublicLink();
+        this.conferences = scheduleEntity.getConferences().stream().
+                map(conferenceEntity -> new Conference(this, conferenceEntity))
+                .collect(Collectors.toList());
     }
 
     private String generatePublicLink(){

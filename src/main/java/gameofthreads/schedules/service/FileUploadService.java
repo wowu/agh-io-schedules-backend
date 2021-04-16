@@ -20,13 +20,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class ExcelStorageService {
+public class FileUploadService {
     private final ExcelRepository excelRepository;
     private final ScheduleRepository scheduleRepository;
     private List<Excel> approvedExcels = new ArrayList<>();
     private StringBuilder collisions = new StringBuilder();
 
-    public ExcelStorageService(ExcelRepository excelRepository, ScheduleRepository scheduleRepository) {
+    public FileUploadService(ExcelRepository excelRepository, ScheduleRepository scheduleRepository) {
         this.excelRepository = excelRepository;
         this.scheduleRepository = scheduleRepository;
     }
