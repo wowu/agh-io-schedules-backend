@@ -1,6 +1,5 @@
 package gameofthreads.schedules.controller;
 
-import com.google.gson.Gson;
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.FileUploadService;
@@ -14,12 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("api/schedule")
+@RequestMapping("api/schedules")
 public class ScheduleController {
     private final FileUploadService fileUploadService;
     private final ScheduleService scheduleService;
@@ -29,7 +26,7 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
-    @GetMapping("/getAll")
+    @GetMapping()
     public ResponseEntity<?> getAllSchedules() {
         Optional<String> schedules = scheduleService.getAllSchedulesInJson();
 
@@ -38,8 +35,8 @@ public class ScheduleController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.GENERAL_ERROR.asJson()));
     }
 
-    @GetMapping("/get")
-    public ResponseEntity<?> getSchedule(@RequestParam Integer scheduleId) {
+    @GetMapping("/{scheduleId}")
+    public ResponseEntity<?> getSchedule(@PathVariable Integer scheduleId) {
         Optional<String> schedule = scheduleService.getScheduleInJson(scheduleId);
 
         return schedule.
@@ -47,15 +44,7 @@ public class ScheduleController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_SCHEDULE_ID.asJson()));
     }
 
-    @GetMapping("/getFiles")
-    public ResponseEntity<?> getAllFiles() {
-        List<Excel> excels = fileUploadService.getFiles();
-
-        return ResponseEntity.status(HttpStatus.OK).body
-                (new Gson().toJson(excels.stream().map(Excel::getExcelName).collect(Collectors.toList())));
-    }
-
-    @PostMapping("/upload")
+    @PostMapping()
     public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) {
         Optional<StringBuilder> collisions = fileUploadService.saveFiles(files, scheduleService);
 
@@ -66,14 +55,15 @@ public class ScheduleController {
     }
 
 
-    @GetMapping("/download/{fileId}")
-    public ResponseEntity<?> downloadFile(@PathVariable Integer fileId) {
-        if (fileUploadService.getFile(fileId).isEmpty())
+    @GetMapping("/{scheduleId}/file")
+    public ResponseEntity<?> downloadFile(@PathVariable Integer scheduleId) {
+        if (fileUploadService.getFile(scheduleId).isEmpty())
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_DOWNLOAD_ID.asJson());
-        Excel excel = fileUploadService.getFile(fileId).get();
+        Excel excel = fileUploadService.getFile(scheduleId).get();
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(excel.getExcelType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment:filename=\"" + excel.getExcelName() + "\"")
                 .body(new ByteArrayResource(excel.getData()));
     }
+
 }
