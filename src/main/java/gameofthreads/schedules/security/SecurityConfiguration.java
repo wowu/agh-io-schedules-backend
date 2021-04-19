@@ -23,8 +23,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests(config ->
                         config
-                                .antMatchers("/api/token/*").permitAll()
-                                .antMatchers("/api/schedule/*").hasAuthority("SCOPE_ADMIN")
+                                .antMatchers("/api/auth/*").permitAll()
+                                .antMatchers("/api/schedules/*").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/add").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/addByLink").permitAll()
                                 .anyRequest().authenticated()
