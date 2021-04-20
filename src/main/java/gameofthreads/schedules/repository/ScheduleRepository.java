@@ -5,10 +5,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Integer> {
     @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.subscriptions WHERE s.id=:scheduleId")
     Optional<ScheduleEntity> fetchWithSubscriptions(Integer scheduleId);
+
+    @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities WHERE s.id=:scheduleId")
+    Optional<ScheduleEntity> fetchWithConferencesAndMeetings(Integer scheduleId);
+
+    @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities")
+    List<ScheduleEntity> fetchAllWithConferencesAndMeetings();
 }

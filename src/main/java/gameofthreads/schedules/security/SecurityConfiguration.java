@@ -25,8 +25,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests(config ->
                         config
                                 .antMatchers("/api/auth/*").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/schedules/").permitAll()
-                                .antMatchers(HttpMethod.GET, "/api/schedules/{scheduleId}").permitAll()
+                                .antMatchers(HttpMethod.GET, "/api/schedules/").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
+                                .antMatchers(HttpMethod.GET, "/api/schedules/{scheduleId}").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
                                 .antMatchers("/api/schedules/*").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/add").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/addByLink").permitAll()

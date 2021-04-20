@@ -48,4 +48,8 @@ public class UserEntity {
     public String getLastname() {
         return lastname;
     }
+
+    public String getFullName() {
+        return firstname + " " + lastname;
+    }
 }

@@ -98,6 +98,10 @@ public class MeetingEntity {
         return lecturerSurname;
     }
 
+    public String getFullName() {
+        return lecturerName + " " + lecturerSurname;
+    }
+
     public MeetingType getType() {
         return type;
     }
