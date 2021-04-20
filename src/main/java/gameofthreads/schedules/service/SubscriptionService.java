@@ -62,7 +62,7 @@ public class SubscriptionService {
         Optional<SubscriptionEntity> subscriptionEntity = subscriptionRepository.findById(subscriptionId);
 
         if(subscriptionEntity.isEmpty()){
-            return Either.left(ErrorMessage.WRONG_SUBSCRIPTION_ID.asJson());
+            return Either.left(ErrorMessage.WRONG_SUBSCRIPTION_ID.asJson())
         }
 
         subscriptionEntity.get().setActive(false);

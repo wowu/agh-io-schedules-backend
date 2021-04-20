@@ -1,5 +1,6 @@
 package gameofthreads.schedules.domain;
 
+import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.MeetingFormat;
 import gameofthreads.schedules.entity.MeetingType;
 
@@ -29,6 +30,19 @@ public class Meeting {
         this.lengthInHours = meetingBuilder.lengthInHours;
         this.format = meetingBuilder.format;
         this.room = meetingBuilder.room;
+    }
+
+    public Meeting(Conference conference, MeetingEntity meetingEntity) {
+        this.conference = conference;
+        this.dateStart = meetingEntity.getDateStart();
+        this.dateEnd = meetingEntity.getDateEnd();
+        this.subject = meetingEntity.getSubject();
+        this.group = meetingEntity.getGroup();
+        this.lecturer = meetingEntity.getLecturer();
+        this.type = meetingEntity.getType();
+        this.lengthInHours = meetingEntity.getLengthInHours();
+        this.format = meetingEntity.getFormat();
+        this.room = meetingEntity.getRoom();
     }
 
     /***

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/token")
+@RequestMapping("api/auth")
 public class TokenController {
     private final TokenService tokenService;
     private final JwtCreator jwtCreator;
@@ -25,7 +25,7 @@ public class TokenController {
         this.jwtCreator = jwtCreator;
     }
 
-    @PostMapping("/create")
+    @PostMapping("/login")
     public ResponseEntity<?> authenticate(@RequestBody AuthRequest authRequest) {
         Try<ResponseEntity<?>> responseEntity = Try.of(() -> tokenService.authenticate(authRequest))
                 .map(claims -> jwtCreator.createWithClaims(authRequest.username, claims))

@@ -1,10 +1,8 @@
 package gameofthreads.schedules.controller;
 
-import com.google.gson.Gson;
-import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.entity.Excel;
 import gameofthreads.schedules.message.ErrorMessage;
-import gameofthreads.schedules.service.ExcelStorageService;
+import gameofthreads.schedules.service.FileUploadService;
 import gameofthreads.schedules.service.ScheduleService;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -12,38 +10,43 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
-@RequestMapping("api/schedule")
-public class ExcelController {
-    private final ExcelStorageService excelStorageService;
+@RequestMapping("api/schedules")
+public class ScheduleController {
+    private final FileUploadService fileUploadService;
     private final ScheduleService scheduleService;
 
-    public ExcelController(ExcelStorageService excelStorageService, ScheduleService scheduleService) {
-        this.excelStorageService = excelStorageService;
+    public ScheduleController(FileUploadService fileUploadService, ScheduleService scheduleService) {
+        this.fileUploadService = fileUploadService;
         this.scheduleService = scheduleService;
     }
 
-    @GetMapping("/getFiles")
-    public ResponseEntity<?> getAllFiles(Model model) {
-        List<Excel> excels = excelStorageService.getFiles();
-        model.addAttribute("excels", excels);
+    @GetMapping()
+    public ResponseEntity<?> getAllSchedules() {
+        Optional<String> schedules = scheduleService.getAllSchedulesInJson();
 
-
-        return ResponseEntity.status(HttpStatus.OK).body
-                (new Gson().toJson(excels.stream().map(Excel::getExcelName).collect(Collectors.toList())));
+        return schedules.
+                map(s -> ResponseEntity.status(HttpStatus.OK).body(s))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.GENERAL_ERROR.asJson()));
     }
 
-    @PostMapping("/upload")
+    @GetMapping("/{scheduleId}")
+    public ResponseEntity<?> getSchedule(@PathVariable Integer scheduleId) {
+        Optional<String> schedule = scheduleService.getScheduleInJson(scheduleId);
+
+        return schedule.
+                map(s -> ResponseEntity.status(HttpStatus.OK).body(s))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_SCHEDULE_ID.asJson()));
+    }
+
+    @PostMapping()
     public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) {
-        Optional<StringBuilder> collisions = excelStorageService.saveFiles(files, scheduleService);
+        Optional<StringBuilder> collisions = fileUploadService.saveFiles(files, scheduleService);
 
         if (collisions.isPresent() && !(collisions.get().length() == 0))
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(collisions.get());
@@ -52,14 +55,15 @@ public class ExcelController {
     }
 
 
-    @GetMapping("/download/{fileId}")
-    public ResponseEntity<?> downloadFile(@PathVariable Integer fileId) {
-        if (excelStorageService.getFile(fileId).isEmpty())
+    @GetMapping("/{scheduleId}/file")
+    public ResponseEntity<?> downloadFile(@PathVariable Integer scheduleId) {
+        if (fileUploadService.getFile(scheduleId).isEmpty())
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_DOWNLOAD_ID.asJson());
-        Excel excel = excelStorageService.getFile(fileId).get();
+        Excel excel = fileUploadService.getFile(scheduleId).get();
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(excel.getExcelType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment:filename=\"" + excel.getExcelName() + "\"")
                 .body(new ByteArrayResource(excel.getData()));
     }
+
 }
