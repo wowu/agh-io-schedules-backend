@@ -10,7 +10,7 @@ public enum ErrorMessage {
     WRONG_DOWNLOAD_ID("Wrong excel file id."),
     WRONG_CONFERENCE_ID("Wrong conference id. Conference doesn't exist."),
     WRONG_SUBSCRIPTION_ID("Wrong subscription id. Subscription doesn't exist."),
-    INCORRECT_EMAIL("Incorrect email.");
+    INCORRECT_EMAIL("Incorrect email."),
     WRONG_SCHEDULE_ID("Wrong schedule id. Schedule doesn't exist."),
     GENERAL_ERROR("Something did go wrong. Sorry for that!");
 
