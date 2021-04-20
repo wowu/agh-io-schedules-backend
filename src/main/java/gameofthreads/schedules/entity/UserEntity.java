@@ -41,4 +41,11 @@ public class UserEntity {
         return email;
     }
 
+    public String getFirstname() {
+        return firstname;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }
 }

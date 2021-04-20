@@ -53,4 +53,8 @@ public class ScheduleEntity {
     public List<ConferenceEntity> getConferences() {
         return conferenceEntities;
     }
+
+    public Set<SubscriptionEntity> getSubscriptions() {
+        return subscriptions;
+    }
 }

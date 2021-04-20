@@ -12,6 +12,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,8 +33,8 @@ public class ScheduleController {
     }
 
     @GetMapping()
-    public ResponseEntity<?> getAllSchedules() {
-        Optional<ScheduleListResponse> schedule = scheduleService.getAllSchedulesInJson();
+    public ResponseEntity<?> getAllSchedules(Authentication token) {
+        Optional<ScheduleListResponse> schedule = scheduleService.getAllSchedulesInJson((JwtAuthenticationToken) token);
 
         return schedule.isPresent() ?
                 ResponseEntity.status(HttpStatus.OK).body(schedule.get()) :

@@ -9,7 +9,10 @@ import gameofthreads.schedules.dto.response.ShortScheduleResponse;
 import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
+import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.repository.ScheduleRepository;
+import gameofthreads.schedules.repository.UserRepository;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,18 +23,35 @@ import java.util.stream.Collectors;
 @Service
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
+    private final UserRepository userRepository;
 
-    public ScheduleService(ScheduleRepository scheduleRepository) {
+    public ScheduleService(ScheduleRepository scheduleRepository, UserRepository userRepository) {
         this.scheduleRepository = scheduleRepository;
+        this.userRepository = userRepository;
     }
 
-    public Optional<ScheduleListResponse> getAllSchedulesInJson() {
+    public Optional<ScheduleListResponse> getAllSchedulesInJson(JwtAuthenticationToken jwtToken) {
         try {
             List<ScheduleEntity> scheduleEntities = scheduleRepository.findAll();
-            return Optional.of(new ScheduleListResponse(scheduleEntities.stream()
-                    .map(ShortScheduleResponse::new)
-                    .collect(Collectors.toList())));
+            Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
+
+            if (user.isEmpty()) {
+                return Optional.empty();
+            } else if (jwtToken.getTokenAttributes().get("scope").equals("ADMIN")) {
+                return Optional.of(new ScheduleListResponse(scheduleEntities.stream()
+                        .map(ShortScheduleResponse::new)
+                        .collect(Collectors.toList())));
+            } else {
+                return Optional.of(new ScheduleListResponse(scheduleEntities.stream()
+                        .filter(scheduleEntity -> scheduleEntity.getConferences().stream()
+                                .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
+                                        .map(meetingEntity -> meetingEntity.getLecturerName() + " " + meetingEntity.getLecturerSurname()))
+                                .collect(Collectors.toSet()).contains(user.get().getFirstname() + " " + user.get().getLastname()))
+                        .map(ShortScheduleResponse::new)
+                        .collect(Collectors.toList())));
+            }
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return Optional.empty();
         }
     }
