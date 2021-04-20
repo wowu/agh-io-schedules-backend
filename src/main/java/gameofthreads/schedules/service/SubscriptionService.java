@@ -1,6 +1,7 @@
 package gameofthreads.schedules.service;
 
-import gameofthreads.schedules.dto.request.AddSubscriptionRequest;
+import gameofthreads.schedules.dto.response.GetSubscribers;
+import gameofthreads.schedules.dto.response.AddSubscription;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.entity.SubscriptionEntity;
 import gameofthreads.schedules.message.ErrorMessage;
@@ -11,7 +12,7 @@ import io.vavr.control.Either;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,39 +26,48 @@ public class SubscriptionService {
         this.subscriptionRepository = subscriptionRepository;
     }
 
-    @Transactional
-    public Either<String, Boolean> addByAdmin(AddSubscriptionRequest requestData) {
-        if (!Validator.validateEmailList(requestData.emailList)) {
-            return Either.left(ErrorMessage.INCORRECT_EMAIL_LIST.asJson());
-        }
-
-        Optional<ScheduleEntity> conferenceEntity = scheduleRepository.findById(requestData.scheduleId);
-
-        if (conferenceEntity.isEmpty()) {
-            return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
-        }
-
-        List<SubscriptionEntity> subscriptionEntities = requestData.emailList
-                .stream()
-                .map(email -> new SubscriptionEntity(email, conferenceEntity.get()))
-                .collect(Collectors.toList());
-
-        subscriptionRepository.saveAll(subscriptionEntities);
-        return Either.right(true);
+    private Either<Object, ScheduleEntity> findScheduleById(Integer scheduleId) {
+        return scheduleRepository.findById(scheduleId)
+                .map(Either::right)
+                .orElseGet(() -> Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson()));
     }
 
-    public Either<String, Boolean> addUsingLink(String publicLink, String email) {
+    private Either<Object, ScheduleEntity> fetchScheduleWithSubscriptions(Integer scheduleId) {
+        return scheduleRepository.fetchWithSubscriptions(scheduleId)
+                .map(Either::right)
+                .orElseGet(() -> Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson()));
+    }
+
+    public Either<Object, AddSubscription> add(Integer scheduleId, String email) {
         if (!Validator.validateEmail(email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
-        Optional<ScheduleEntity> conferenceEntity = scheduleRepository.findByPublicLink(publicLink);
+        return findScheduleById(scheduleId)
+                .map(schedule -> new SubscriptionEntity(email, schedule))
+                .map(subscriptionRepository::save)
+                .map(AddSubscription::new);
+    }
 
-        if (conferenceEntity.isEmpty()) {
-            return Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson());
+    public Either<Object, GetSubscribers> findAll(Integer scheduleId) {
+        return fetchScheduleWithSubscriptions(scheduleId)
+                .map(ScheduleEntity::getSubscriptions)
+                .map(set -> set.stream().map(AddSubscription::new))
+                .map(set -> set.sorted(Comparator.comparingInt(response -> response.id)))
+                .flatMap(set -> Either.right(new GetSubscribers(set.collect(Collectors.toList()))));
+    }
+
+    @Transactional
+    public Either<Object, Boolean> delete(Integer subscriptionId) {
+        Optional<SubscriptionEntity> subscriptionEntity = subscriptionRepository.findById(subscriptionId);
+
+        if(subscriptionEntity.isEmpty()){
+            return Either.left(ErrorMessage.WRONG_SUBSCRIPTION_ID.asJson());
         }
 
-        subscriptionRepository.save(new SubscriptionEntity(email, conferenceEntity.get()));
+        subscriptionEntity.get().setActive(false);
+        subscriptionRepository.save(subscriptionEntity.get());
+
         return Either.right(true);
     }
 

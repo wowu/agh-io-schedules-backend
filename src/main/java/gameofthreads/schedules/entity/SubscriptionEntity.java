@@ -31,4 +31,16 @@ public class SubscriptionEntity {
         return schedule;
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
 }

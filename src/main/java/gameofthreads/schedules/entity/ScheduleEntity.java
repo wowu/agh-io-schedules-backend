@@ -50,4 +50,8 @@ public class ScheduleEntity {
         return conferenceEntities;
     }
 
+    public Set<SubscriptionEntity> getSubscriptions() {
+        return subscriptions;
+    }
+
 }
