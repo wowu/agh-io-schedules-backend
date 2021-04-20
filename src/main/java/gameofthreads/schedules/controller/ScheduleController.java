@@ -47,6 +47,15 @@ public class ScheduleController {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
+    @DeleteMapping("/{scheduleId}")
+    public ResponseEntity<?> deleteSchedule(@PathVariable Integer scheduleId) {
+        Pair<?, Boolean> schedule = scheduleService.deleteSchedule(scheduleId);
+
+        return schedule.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
+    }
+
     @PostMapping()
     public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) throws IOException {
         Pair<?, Boolean> upload = fileUploadService.saveFiles(files, scheduleService);

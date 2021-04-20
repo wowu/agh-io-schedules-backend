@@ -11,11 +11,11 @@ import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
-import gameofthreads.schedules.repository.ScheduleRepository;
-import gameofthreads.schedules.repository.UserRepository;
+import gameofthreads.schedules.repository.*;
 import org.springframework.data.util.Pair;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,10 +25,16 @@ import java.util.stream.Collectors;
 @Service
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
+    private final ConferenceRepository conferenceRepository;
+    private final MeetingRepository meetingRepository;
+    private final ExcelRepository excelRepository;
     private final UserRepository userRepository;
 
-    public ScheduleService(ScheduleRepository scheduleRepository, UserRepository userRepository) {
+    public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository, MeetingRepository meetingRepository, ExcelRepository excelRepository, UserRepository userRepository) {
         this.scheduleRepository = scheduleRepository;
+        this.conferenceRepository = conferenceRepository;
+        this.meetingRepository = meetingRepository;
+        this.excelRepository = excelRepository;
         this.userRepository = userRepository;
     }
 
@@ -74,6 +80,34 @@ public class ScheduleService {
         }
 
         return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
+    }
+
+    @Transactional
+    public Pair<?, Boolean> deleteSchedule(Integer scheduleId) {
+        long scheduleCount = scheduleRepository.count();
+        long conferenceCount = conferenceRepository.count();
+        long meetingCount = meetingRepository.count();
+        long excelCount = excelRepository.count();
+
+        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
+        if (scheduleEntity.isEmpty())
+            return Pair.of("", Boolean.FALSE);
+        long conferencesToDelete = conferenceRepository.countConferenceEntitiesBySchedule(scheduleEntity.get());
+        List<ConferenceEntity> conferenceEntities = conferenceRepository.findAllBySchedule(scheduleEntity.get());
+        long meetingsToDelete = conferenceEntities.stream()
+                .map(meetingRepository::countMeetingEntitiesByConference)
+                .reduce(0L, Long::sum);
+
+        scheduleRepository.deleteById(scheduleId);
+
+        if (scheduleCount == scheduleRepository.count() + 1 &&
+                conferenceCount == conferenceRepository.count() + conferencesToDelete &&
+                meetingCount == meetingRepository.count() + meetingsToDelete &&
+                excelCount == excelRepository.count() + 1) {
+            return Pair.of("", Boolean.TRUE);
+        }
+
+        return Pair.of("", Boolean.FALSE);
     }
 
 
