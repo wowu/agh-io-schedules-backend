@@ -57,4 +57,5 @@ public class ScheduleEntity {
     public Set<SubscriptionEntity> getSubscriptions() {
         return subscriptions;
     }
+
 }

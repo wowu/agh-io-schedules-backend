@@ -1,36 +1,58 @@
 package gameofthreads.schedules.controller;
 
-import gameofthreads.schedules.dto.request.AddSubscriptionRequest;
+import gameofthreads.schedules.dto.response.GetSubscribers;
+import gameofthreads.schedules.dto.response.AddSubscription;
 import gameofthreads.schedules.service.SubscriptionService;
 import io.vavr.control.Either;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("api/subscription")
+@RequestMapping("api/schedules")
 public class SubscriptionController {
+    private final static Logger LOGGER = LoggerFactory.getLogger(SubscriptionController.class);
     private final SubscriptionService subscriptionService;
 
     public SubscriptionController(SubscriptionService subscriptionService) {
         this.subscriptionService = subscriptionService;
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<?> addByAdmin(@RequestBody AddSubscriptionRequest requestData) {
-        Either<String, Boolean> result = subscriptionService.addByAdmin(requestData);
+    @PostMapping("/{id}/subscribers")
+    public ResponseEntity<?> add(@PathVariable Integer id, @RequestParam String email){
+        Either<Object, AddSubscription> result = subscriptionService.add(id, email);
 
-        return result.isRight() ?
-                ResponseEntity.ok(true) :
-                ResponseEntity.badRequest().body(result.getLeft());
+        if(result.isLeft()){
+            LOGGER.info(result.getLeft().toString());
+            return ResponseEntity.badRequest().body(result.getLeft());
+        }
+
+        return ResponseEntity.ok(result.get());
     }
 
-    @PostMapping("/addByLink")
-    public ResponseEntity<?> addUsingLink(@RequestParam String publicLink, @RequestParam String email) {
-        Either<String, Boolean> result = subscriptionService.addUsingLink(publicLink, email);
+    @GetMapping("/{id}/subscribers")
+    public ResponseEntity<?> get(@PathVariable Integer id){
+        Either<Object, GetSubscribers> result = subscriptionService.findAll(id);
 
-        return result.isRight() ?
-                ResponseEntity.ok(true) :
-                ResponseEntity.badRequest().body(result.getLeft());
+        if(result.isLeft()){
+            LOGGER.info(result.getLeft().toString());
+            return ResponseEntity.badRequest().body(result.getLeft());
+        }
+
+        return ResponseEntity.ok(result.get());
+    }
+
+    @DeleteMapping("/{id}/subscriptions/{sub_id}")
+    public ResponseEntity<?> delete(@PathVariable Integer id, @PathVariable(name = "sub_id") Integer subscriptionId){
+        Either<Object, Boolean> result = subscriptionService.delete(subscriptionId);
+
+        if(result.isLeft()){
+            LOGGER.info(result.getLeft().toString());
+            return ResponseEntity.badRequest().body(result.getLeft());
+        }
+
+        return ResponseEntity.ok(result.get());
     }
 
 }
