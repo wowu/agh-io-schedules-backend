@@ -1,16 +1,18 @@
+-- zmieniłem tutaj - potrzebny restart bazy
 CREATE TABLE meeting
 (
-    id              SERIAL PRIMARY KEY,
-    conference_id   INTEGER   NOT NULL,
-    date_start      TIMESTAMP NOT NULL,
-    date_end        TIMESTAMP NOT NULL,
-    subject         TEXT      NOT NULL,
-    group_name      TEXT      NOT NULL,
-    lecturer        TEXT      NOT NULL,
-    type            TEXT      NOT NULL,
-    length_in_hours INTEGER   NOT NULL,
-    format          TEXT      NOT NULL,
-    room            TEXT      NOT NULL
+    id               SERIAL PRIMARY KEY,
+    conference_id    INTEGER   NOT NULL,
+    date_start       TIMESTAMP NOT NULL,
+    date_end         TIMESTAMP NOT NULL,
+    subject          TEXT      NOT NULL,
+    group_name       TEXT      NOT NULL,
+    lecturer_name    TEXT      NOT NULL,
+    lecturer_surname TEXT      NOT NULL,
+    type             TEXT      NOT NULL,
+    length_in_hours  INTEGER   NOT NULL,
+    format           TEXT      NOT NULL,
+    room             TEXT      NOT NULL
 );
 
 CREATE TABLE conference

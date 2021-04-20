@@ -6,7 +6,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "excel")
-public class Excel {
+public class ExcelEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -21,10 +21,14 @@ public class Excel {
     @Column(name = "data")
     private byte[] data;
 
-    public Excel() {
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private ScheduleEntity schedule;
+
+    public ExcelEntity() {
     }
 
-    public Excel(String excelName, String excelType, byte[] data) {
+    public ExcelEntity(String excelName, String excelType, byte[] data) {
         this.excelName = excelName;
         this.excelType = excelType;
         this.data = data;
@@ -40,5 +44,13 @@ public class Excel {
 
     public byte[] getData() {
         return data;
+    }
+
+    public ScheduleEntity getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(ScheduleEntity schedule) {
+        this.schedule = schedule;
     }
 }

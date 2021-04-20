@@ -13,7 +13,7 @@ public class CacheInit {
         this.loadPublicLinks();
     }
 
-    public void loadPublicLinks(){
+    public void loadPublicLinks() {
         Schedule.loadPublicLinks(scheduleService.findPublicLinks());
     }
 

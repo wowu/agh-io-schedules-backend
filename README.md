@@ -122,7 +122,7 @@ ResponseBody: {
 
 (Wrong Id)
 ResponseBody: {
- "ERROR": "Wrong excel file id."
+ "ERROR": "Wrong excelEntity file id."
 }
 
 3. List of schedules (names of Excels)

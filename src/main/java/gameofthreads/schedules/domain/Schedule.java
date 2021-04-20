@@ -1,13 +1,14 @@
 package gameofthreads.schedules.domain;
 
-import gameofthreads.schedules.entity.ScheduleEntity;
+import gameofthreads.schedules.dto.response.UploadConflictResponse;
+import gameofthreads.schedules.entity.ExcelEntity;
 import net.bytebuddy.utility.RandomString;
+import org.springframework.data.util.Pair;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class Schedule {
     private final static Set<String> publicLinkSet = new HashSet<>();
@@ -15,26 +16,23 @@ public class Schedule {
     private final String fileName;
     private final String publicLink;
     private final List<Conference> conferences;
+    private ExcelEntity excelEntity;
 
     public Schedule(String fileName) {
-        this.fileName = fileName;
+        this.fileName = fileName.split("\\.")[0];
         this.publicLink = generatePublicLink();
         this.conferences = new ArrayList<>();
     }
 
-    public Schedule(ScheduleEntity scheduleEntity) {
-        this.fileName = scheduleEntity.getFileName();
-        this.publicLink = scheduleEntity.getPublicLink();
-        this.conferences = scheduleEntity.getConferences().stream().
-                map(conferenceEntity -> new Conference(this, conferenceEntity))
-                .collect(Collectors.toList());
+    public static void loadPublicLinks(Set<String> publicLinks) {
+        publicLinkSet.addAll(publicLinks);
     }
 
-    private String generatePublicLink(){
+    private String generatePublicLink() {
         final int length = 64;
         String publicLink = RandomString.make(length);
 
-        while(publicLinkSet.contains(publicLink)){
+        while (publicLinkSet.contains(publicLink)) {
             publicLink = RandomString.make(length);
         }
 
@@ -42,23 +40,22 @@ public class Schedule {
         return publicLink;
     }
 
-    public static void loadPublicLinks(Set<String> publicLinks){
-        publicLinkSet.addAll(publicLinks);
-    }
-
     /**
      * returns true if schedules have no collisions
      */
-    public boolean compareSchedules(Schedule otherSchedule, StringBuilder result, boolean sameSchedule) {
+    public Pair<UploadConflictResponse.ConflictList, Boolean> compareEventWithSchedule(Meeting meeting, Schedule otherSchedule, boolean sameSchedule) {
         boolean noCollisions = true;
-        for (Conference conference : conferences) {
-            for (Conference otherConference : otherSchedule.getConferences()) {
-                if (!conference.compareConference(otherConference, result, sameSchedule))
-                    noCollisions = false;
+        UploadConflictResponse.ConflictList conflictList = new UploadConflictResponse.ConflictList(otherSchedule.fileName);
+        for (Conference otherConference : otherSchedule.getConferences()) {
+            Pair<List<UploadConflictResponse.Conflict>, Boolean> compareConference =
+                    meeting.getConference().compareConference(meeting, otherConference, sameSchedule);
+            if (!compareConference.getSecond()) {
+                conflictList.conflictedEvents.addAll(compareConference.getFirst());
+                noCollisions = false;
             }
         }
 
-        return noCollisions;
+        return Pair.of(conflictList, noCollisions);
     }
 
     public String getFileName() {
@@ -73,4 +70,11 @@ public class Schedule {
         return publicLink;
     }
 
+    public ExcelEntity getExcelEntity() {
+        return excelEntity;
+    }
+
+    public void setExcelEntity(ExcelEntity excelEntity) {
+        this.excelEntity = excelEntity;
+    }
 }

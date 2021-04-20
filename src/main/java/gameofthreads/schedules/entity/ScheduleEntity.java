@@ -24,14 +24,18 @@ public class ScheduleEntity {
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
     private List<ConferenceEntity> conferenceEntities;
 
+    @OneToOne(mappedBy = "schedule", cascade = CascadeType.ALL)
+    private ExcelEntity excelEntity;
+
     public ScheduleEntity() {
 
     }
 
-    public ScheduleEntity(String fileName, String publicLink) {
-        this.fileName = fileName;
+    public ScheduleEntity(String fileName, String publicLink, ExcelEntity excelEntity) {
+        this.fileName = fileName.split("\\.")[0];
         this.publicLink = publicLink;
         this.conferenceEntities = new ArrayList<>();
+        this.excelEntity = excelEntity;
     }
 
     public Integer getId() {
@@ -49,5 +53,4 @@ public class ScheduleEntity {
     public List<ConferenceEntity> getConferences() {
         return conferenceEntities;
     }
-
 }

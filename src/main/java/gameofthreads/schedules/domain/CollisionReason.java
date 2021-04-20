@@ -1,9 +1,9 @@
 package gameofthreads.schedules.domain;
 
 public enum CollisionReason {
-    ROOM("Sala"),
-    LECTURER("Prowadzący"),
-    GROUP("Grupa");
+    ROOM("Room is engaged."),
+    LECTURER("Lecturer has another event."),
+    GROUP("Group has another event.");
 
     private final String reason;
 

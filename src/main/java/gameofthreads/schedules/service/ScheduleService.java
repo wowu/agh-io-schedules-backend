@@ -3,6 +3,9 @@ package gameofthreads.schedules.service;
 import gameofthreads.schedules.domain.Conference;
 import gameofthreads.schedules.domain.Meeting;
 import gameofthreads.schedules.domain.Schedule;
+import gameofthreads.schedules.dto.response.DetailedScheduleResponse;
+import gameofthreads.schedules.dto.response.ScheduleListResponse;
+import gameofthreads.schedules.dto.response.ShortScheduleResponse;
 import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
@@ -22,58 +25,29 @@ public class ScheduleService {
         this.scheduleRepository = scheduleRepository;
     }
 
-    public String getSchedule(ScheduleEntity scheduleEntity) {
-        Schedule schedule = new Schedule(scheduleEntity);
-        StringBuilder scheduleJson = new StringBuilder("{\"schedule\": \"" + schedule.getFileName()
-                + "\"," + "\"meetings\": [");
-        boolean firstConflict = true;
-
-        for (Conference conference : schedule.getConferences()) {
-            for (Meeting meeting : conference.getMeetings()) {
-                if (!firstConflict)
-                    scheduleJson.append(",");
-                firstConflict = false;
-                scheduleJson.append(meeting.asJson());
-            }
-        }
-
-        scheduleJson.append("]}");
-
-        return scheduleJson.toString();
-    }
-
-    public Optional<String> getAllSchedulesInJson() {
-        List<ScheduleEntity> scheduleEntities = scheduleRepository.findAll();
-        StringBuilder allSchedulesJson = new StringBuilder("{\"schedules\": [");
-        boolean firstSchedule = true;
-
+    public Optional<ScheduleListResponse> getAllSchedulesInJson() {
         try {
-            for (ScheduleEntity scheduleEntity : scheduleEntities) {
-                if (!firstSchedule)
-                    allSchedulesJson.append(",");
-                firstSchedule = false;
-                allSchedulesJson.append(getSchedule(scheduleEntity));
-            }
+            List<ScheduleEntity> scheduleEntities = scheduleRepository.findAll();
+            return Optional.of(new ScheduleListResponse(scheduleEntities.stream()
+                    .map(ShortScheduleResponse::new)
+                    .collect(Collectors.toList())));
         } catch (Exception e) {
             return Optional.empty();
         }
-
-        allSchedulesJson.append("]}");
-
-        return Optional.of(allSchedulesJson.toString());
     }
 
-    public Optional<String> getScheduleInJson(Integer scheduleId) {
+    public Optional<DetailedScheduleResponse> getScheduleInJson(Integer scheduleId) {
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
         if (scheduleEntity.isEmpty())
             return Optional.empty();
 
-        return Optional.of(getSchedule(scheduleEntity.get()));
+        return Optional.of(new DetailedScheduleResponse(scheduleEntity.get()));
     }
 
 
     public ScheduleEntity getScheduleEntity(Schedule schedule) {
-        ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink());
+        ScheduleEntity scheduleEntity =
+                new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink(), schedule.getExcelEntity());
         for (Conference conference : schedule.getConferences()) {
             addConferenceToSchedule(conference, scheduleEntity);
         }
@@ -90,8 +64,9 @@ public class ScheduleService {
 
     public void addMeetingToConference(Meeting meeting, ConferenceEntity conferenceEntity) {
         MeetingEntity meetingEntity = new MeetingEntity(conferenceEntity, meeting.getDateStart(),
-                meeting.getDateEnd(), meeting.getSubject(), meeting.getGroup(), meeting.getLecturer(),
-                meeting.getType(), meeting.getLengthInHours(), meeting.getFormat(), meeting.getRoom());
+                meeting.getDateEnd(), meeting.getSubject(), meeting.getGroup(), meeting.getLecturerName(),
+                meeting.getLecturerSurname(), meeting.getType(), meeting.getLengthInHours(),
+                meeting.getFormat(), meeting.getRoom());
 
         conferenceEntity.getMeetingEntities().add(meetingEntity);
     }

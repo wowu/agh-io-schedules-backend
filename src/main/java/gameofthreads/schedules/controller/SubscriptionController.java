@@ -16,20 +16,20 @@ public class SubscriptionController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addByAdmin(@RequestBody AddSubscriptionRequest requestData){
+    public ResponseEntity<?> addByAdmin(@RequestBody AddSubscriptionRequest requestData) {
         Either<String, Boolean> result = subscriptionService.addByAdmin(requestData);
 
-        return result.isRight()?
-                ResponseEntity.ok(true):
+        return result.isRight() ?
+                ResponseEntity.ok(true) :
                 ResponseEntity.badRequest().body(result.getLeft());
     }
 
     @PostMapping("/addByLink")
-    public ResponseEntity<?> addUsingLink(@RequestParam String publicLink, @RequestParam String email){
+    public ResponseEntity<?> addUsingLink(@RequestParam String publicLink, @RequestParam String email) {
         Either<String, Boolean> result = subscriptionService.addUsingLink(publicLink, email);
 
-        return result.isRight()?
-                ResponseEntity.ok(true):
+        return result.isRight() ?
+                ResponseEntity.ok(true) :
                 ResponseEntity.badRequest().body(result.getLeft());
     }
 

@@ -1,11 +1,14 @@
 package gameofthreads.schedules.domain;
 
-import gameofthreads.schedules.entity.Excel;
+import gameofthreads.schedules.dto.response.UploadConflictResponse;
+import gameofthreads.schedules.entity.ExcelEntity;
+import org.springframework.data.util.Pair;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class CollisionDetector {
     List<Schedule> schedules;
@@ -15,39 +18,42 @@ public class CollisionDetector {
         schedules.add(schedule);
     }
 
-    public void loadSchedules(List<Excel> excels) throws IOException {
-        for (Excel excel : excels) {
-            Optional<Schedule> newSchedule = new Parser(excel.getExcelName(), excel.getData()).parse();
+    public void loadSchedules(List<ExcelEntity> excelEntities) throws IOException {
+        for (ExcelEntity excelEntity : excelEntities) {
+            Optional<Schedule> newSchedule = new Parser(excelEntity.getExcelName(), excelEntity.getData()).parse();
             newSchedule.ifPresent(schedule -> schedules.add(schedule));
         }
     }
 
-    public StringBuilder compareSchedules() {
-        StringBuilder schedulesCollisions =
-                new StringBuilder("{\"schedule\": \"" + schedules.get(0).getFileName() + "\"," +
-                        "\"conflicts\": [");
+    public Pair<UploadConflictResponse.ConflictSchedule, Boolean> compareSchedules() {
+        Schedule thisSchedule = schedules.get(0);
+        List<Meeting> thisMeetings = thisSchedule.getConferences().stream().
+                flatMap(conference -> conference.getMeetings().stream())
+                .collect(Collectors.toList());
+        UploadConflictResponse.ConflictSchedule conflictSchedule =
+                new UploadConflictResponse.ConflictSchedule(thisSchedule.getFileName());
+        boolean noCollisions = true;
 
-        boolean firstConflict = true;
-        StringBuilder response =
-                new StringBuilder("");
-        for (Schedule schedule : schedules) {
-            boolean sameSchedule = schedule.equals(schedules.get(0));
-            StringBuilder scheduleResponse =
-                    new StringBuilder("{\"schedule\": \"" + schedule.getFileName() + "\"," +
-                            "\"conflict meetings\": [");
-            boolean result = schedule.compareSchedules(schedule, scheduleResponse, sameSchedule);
-            if (!result) {
-                if (!firstConflict)
-                    scheduleResponse.append(",");
-                scheduleResponse.append("]}");
-                firstConflict = false;
-                response.append(scheduleResponse);
+        for (Meeting meeting : thisMeetings) {
+            List<UploadConflictResponse.ConflictList> conflictLists = new ArrayList<>();
+            boolean noCollisionsEvent = true;
+            for (Schedule schedule : schedules) {
+                boolean sameSchedule = schedule.equals(thisSchedule);
+                Pair<UploadConflictResponse.ConflictList, Boolean> compare =
+                        thisSchedule.compareEventWithSchedule(meeting, schedule, sameSchedule);
+
+                if (!compare.getSecond()) {
+                    noCollisionsEvent = false;
+                    conflictLists.add(compare.getFirst());
+                }
             }
-
+            if (!noCollisionsEvent) {
+                noCollisions = false;
+                conflictSchedule.eventsWithConflicts.add(new UploadConflictResponse
+                        .ConflictEvents(new UploadConflictResponse.ConflictMeeting(meeting), conflictLists));
+            }
         }
 
-        schedulesCollisions.append(response).append("]}");
-
-        return schedulesCollisions;
+        return Pair.of(conflictSchedule, noCollisions);
     }
 }

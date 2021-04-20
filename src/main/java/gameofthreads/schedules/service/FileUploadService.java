@@ -3,19 +3,23 @@ package gameofthreads.schedules.service;
 import gameofthreads.schedules.domain.CollisionDetector;
 import gameofthreads.schedules.domain.Parser;
 import gameofthreads.schedules.domain.Schedule;
-import gameofthreads.schedules.entity.Excel;
+import gameofthreads.schedules.dto.response.DetailedScheduleResponse;
+import gameofthreads.schedules.dto.response.UploadConflictResponse;
+import gameofthreads.schedules.dto.response.UploadSuccessfulResponse;
+import gameofthreads.schedules.entity.ExcelEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.ExcelRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -23,76 +27,82 @@ import java.util.stream.Collectors;
 public class FileUploadService {
     private final ExcelRepository excelRepository;
     private final ScheduleRepository scheduleRepository;
-    private List<Excel> approvedExcels = new ArrayList<>();
-    private StringBuilder collisions = new StringBuilder();
+    private List<ExcelEntity> approvedExcelEntities = new ArrayList<>();
 
     public FileUploadService(ExcelRepository excelRepository, ScheduleRepository scheduleRepository) {
         this.excelRepository = excelRepository;
         this.scheduleRepository = scheduleRepository;
     }
 
-    public Optional<Schedule> checkCollisions(String fileName, Excel excel) throws IOException {
+    public CollisionResponse checkCollisions(String fileName, ExcelEntity excelEntity) throws IOException {
         if (!fileName.contains(".xlsx") && !fileName.contains(".xls"))
-            return Optional.empty();
-        Parser parser = new Parser(fileName, excel.getData());
+            return new CollisionResponse(null, null, ErrorMessage.GENERAL_ERROR, Boolean.FALSE);
+        Parser parser = new Parser(fileName, excelEntity.getData());
         Optional<Schedule> optSchedule = parser.parse();
-        List<Excel> excels = excelRepository.findAll();
+        List<ExcelEntity> excelEntities = excelRepository.findAll();
         if (optSchedule.isPresent()) {
             CollisionDetector collisionDetector = new CollisionDetector(optSchedule.get());
-            collisionDetector.loadSchedules(excels);
-            collisionDetector.loadSchedules(approvedExcels);
-            collisions = collisionDetector.compareSchedules();
-            return optSchedule;
+            collisionDetector.loadSchedules(excelEntities);
+            collisionDetector.loadSchedules(approvedExcelEntities);
+            Pair<UploadConflictResponse.ConflictSchedule, Boolean> compareSchedules = collisionDetector.compareSchedules();
+            return new CollisionResponse(optSchedule.get(), compareSchedules.getFirst(), null, compareSchedules.getSecond());
         }
-        return Optional.empty();
+        return new CollisionResponse(null, null, ErrorMessage.GENERAL_ERROR, Boolean.FALSE);
     }
 
     @Transactional
-    public Optional<StringBuilder> saveFiles(MultipartFile[] files, ScheduleService scheduleService) {
-        StringBuilder resultCollisions = new StringBuilder("{\"schedules\": [");
-        approvedExcels = new ArrayList<>();
-        List<Schedule> schedules = new ArrayList<>();
-        List<Excel> excels = new ArrayList<>();
-        HashSet<String> existingExcels = new HashSet<>(excelRepository.findAllExcelNames());
+    public Pair<?, Boolean> saveFiles(MultipartFile[] files, ScheduleService scheduleService) throws IOException {
+        if (files.length == 1 && Objects.equals(files[0].getOriginalFilename(), ""))
+            return Pair.of(ErrorMessage.NO_FILES.asJson(), Boolean.FALSE);
+        approvedExcelEntities = new ArrayList<>();
+        List<ScheduleEntity> schedules = new ArrayList<>();
+        List<UploadConflictResponse.ConflictSchedule> schedulesWithConflicts = new ArrayList<>();
 
         for (MultipartFile file : files) {
             String fileName = file.getOriginalFilename();
-            try {
-                Excel excel = new Excel(fileName, file.getContentType(), file.getBytes());
-                Optional<Schedule> optSchedule = checkCollisions(fileName, excel);
-                if (!file.equals(files[0]))
-                    resultCollisions.append(",");
-                resultCollisions.append(collisions);
-                if (collisions.toString().contains("[]") && optSchedule.isPresent() && !existingExcels.contains(fileName)) {
-                    schedules.add(optSchedule.get());
-                    approvedExcels.add(excel);
-                    excels.add(excel);
-                }
-                if (optSchedule.isEmpty())
-                    return Optional.of(new StringBuilder(ErrorMessage.WRONG_EXCEL_FILE.asJson()));
-            } catch (Exception e) {
-                return Optional.empty();
+            ExcelEntity excelEntity = new ExcelEntity(fileName, file.getContentType(), file.getBytes());
+            CollisionResponse collisionResponse = checkCollisions(Objects.requireNonNull(fileName), excelEntity);
+            if (collisionResponse.noCollisions) {
+                collisionResponse.schedule.setExcelEntity(excelEntity);
+                ScheduleEntity scheduleEntity = scheduleService.getScheduleEntity(collisionResponse.schedule);
+                excelEntity.setSchedule(scheduleEntity);
+                schedules.add(scheduleEntity);
+                approvedExcelEntities.add(excelEntity);
+            } else {
+                schedulesWithConflicts.add(collisionResponse.conflictSchedule);
             }
         }
 
-        List<ScheduleEntity> scheduleEntities =
-                schedules.stream().map(scheduleService::getScheduleEntity).collect(Collectors.toList());
-        excelRepository.saveAll(excels);
-        scheduleRepository.saveAll(scheduleEntities);
-        resultCollisions.append("]}");
+        if (schedulesWithConflicts.size() > 0) {
+            return Pair.of(new UploadConflictResponse(schedulesWithConflicts), Boolean.FALSE);
+        }
 
-        if (schedules.size() == files.length)
-            return Optional.empty();
+        scheduleRepository.saveAll(schedules);
 
-        return Optional.of(resultCollisions);
+        return Pair.of(new UploadSuccessfulResponse(schedules.stream()
+                .map(DetailedScheduleResponse::new).collect(Collectors.toList())), Boolean.TRUE);
     }
 
-    public Optional<Excel> getFile(Integer fileId) {
+    public Optional<ExcelEntity> getFile(Integer fileId) {
         return excelRepository.findById(fileId);
     }
 
-    public List<Excel> getFiles() {
+    public List<ExcelEntity> getFiles() {
         return excelRepository.findAll();
+    }
+
+    private static class CollisionResponse {
+        public final Schedule schedule;
+        public final UploadConflictResponse.ConflictSchedule conflictSchedule;
+        public final ErrorMessage errorMessage;
+        public final Boolean noCollisions;
+
+        private CollisionResponse(Schedule schedule, UploadConflictResponse.ConflictSchedule conflictSchedule, ErrorMessage errorMessage, Boolean noCollisions) {
+            this.schedule = schedule;
+            this.conflictSchedule = conflictSchedule;
+            this.errorMessage = errorMessage;
+            this.noCollisions = noCollisions;
+        }
     }
 
 }
