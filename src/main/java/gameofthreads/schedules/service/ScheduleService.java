@@ -10,8 +10,10 @@ import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.entity.UserEntity;
+import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.repository.UserRepository;
+import org.springframework.data.util.Pair;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 
@@ -30,38 +32,48 @@ public class ScheduleService {
         this.userRepository = userRepository;
     }
 
-    public Optional<ScheduleListResponse> getAllSchedulesInJson(JwtAuthenticationToken jwtToken) {
+    public Pair<?, Boolean> getAllSchedulesInJson(JwtAuthenticationToken jwtToken) {
         try {
             List<ScheduleEntity> scheduleEntities = scheduleRepository.findAll();
             Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
 
             if (user.isEmpty()) {
-                return Optional.empty();
+                return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
             } else if (jwtToken.getTokenAttributes().get("scope").equals("ADMIN")) {
-                return Optional.of(new ScheduleListResponse(scheduleEntities.stream()
+                return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
                         .map(ShortScheduleResponse::new)
-                        .collect(Collectors.toList())));
+                        .collect(Collectors.toList())), Boolean.TRUE);
             } else {
-                return Optional.of(new ScheduleListResponse(scheduleEntities.stream()
+                return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
                         .filter(scheduleEntity -> scheduleEntity.getConferences().stream()
                                 .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
                                         .map(meetingEntity -> meetingEntity.getLecturerName() + " " + meetingEntity.getLecturerSurname()))
                                 .collect(Collectors.toSet()).contains(user.get().getFirstname() + " " + user.get().getLastname()))
                         .map(ShortScheduleResponse::new)
-                        .collect(Collectors.toList())));
+                        .collect(Collectors.toList())), Boolean.TRUE);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return Optional.empty();
+            return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
         }
     }
 
-    public Optional<DetailedScheduleResponse> getScheduleInJson(Integer scheduleId) {
+    public Pair<?, Boolean> getScheduleInJson(Integer scheduleId, JwtAuthenticationToken jwtToken) {
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
-        if (scheduleEntity.isEmpty())
-            return Optional.empty();
+        Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
 
-        return Optional.of(new DetailedScheduleResponse(scheduleEntity.get()));
+        if (scheduleEntity.isEmpty())
+            return Pair.of(ErrorMessage.WRONG_SCHEDULE_ID.asJson(), Boolean.FALSE);
+        else if (user.isEmpty())
+            return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
+        else if (jwtToken.getTokenAttributes().get("scope").equals("LECTURER") &&
+                !scheduleEntity.get().getConferences().stream()
+                        .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
+                                .map(meetingEntity -> meetingEntity.getLecturerName() + " " + meetingEntity.getLecturerSurname()))
+                        .collect(Collectors.toSet()).contains(user.get().getFirstname() + " " + user.get().getLastname())) {
+            return Pair.of(ErrorMessage.INSUFFICIENT_SCOPE.asJson(), Boolean.FALSE);
+        }
+
+        return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
     }
 
 

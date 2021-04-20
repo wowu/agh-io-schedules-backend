@@ -1,7 +1,5 @@
 package gameofthreads.schedules.controller;
 
-import gameofthreads.schedules.dto.response.DetailedScheduleResponse;
-import gameofthreads.schedules.dto.response.ScheduleListResponse;
 import gameofthreads.schedules.entity.ExcelEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.FileUploadService;
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("api/schedules")
@@ -34,20 +31,20 @@ public class ScheduleController {
 
     @GetMapping()
     public ResponseEntity<?> getAllSchedules(Authentication token) {
-        Optional<ScheduleListResponse> schedule = scheduleService.getAllSchedulesInJson((JwtAuthenticationToken) token);
+        Pair<?, Boolean> schedules = scheduleService.getAllSchedulesInJson((JwtAuthenticationToken) token);
 
-        return schedule.isPresent() ?
-                ResponseEntity.status(HttpStatus.OK).body(schedule.get()) :
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorMessage.GENERAL_ERROR.asJson());
+        return schedules.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedules.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedules.getFirst());
     }
 
     @GetMapping("/{scheduleId}")
-    public ResponseEntity<?> getSchedule(@PathVariable Integer scheduleId) {
-        Optional<DetailedScheduleResponse> schedule = scheduleService.getScheduleInJson(scheduleId);
+    public ResponseEntity<?> getSchedule(@PathVariable Integer scheduleId, Authentication token) {
+        Pair<?, Boolean> schedule = scheduleService.getScheduleInJson(scheduleId, (JwtAuthenticationToken) token);
 
-        return schedule.isPresent() ?
-                ResponseEntity.status(HttpStatus.OK).body(schedule.get()) :
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorMessage.WRONG_SCHEDULE_ID.asJson());
+        return schedule.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
     @PostMapping()

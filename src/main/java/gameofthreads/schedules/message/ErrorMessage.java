@@ -10,6 +10,7 @@ public enum ErrorMessage {
     WRONG_SCHEDULE_ID("Wrong schedule id. Schedule doesn't exist."),
     INCORRECT_EMAIL_LIST("Emails list contains incorrect email address"),
     INCORRECT_EMAIL("Incorrect email."),
+    INSUFFICIENT_SCOPE("This request requires higher privileges."),
     NO_FILES("You have not attached any files."),
     GENERAL_ERROR("Something did go wrong. Sorry for that!");
 
