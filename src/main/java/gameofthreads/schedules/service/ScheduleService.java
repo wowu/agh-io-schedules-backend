@@ -87,6 +87,22 @@ public class ScheduleService {
     }
 
     @Transactional
+    public Pair<?, Boolean> modifySchedule(Integer scheduleId, String name, String description) {
+        try {
+            if (name != null && description != null)
+                scheduleRepository.updateAllMetadata(scheduleId, name, description);
+            else if (name != null)
+                scheduleRepository.updateFilenameMetadata(scheduleId, name);
+            else if (description != null)
+                scheduleRepository.updateDescriptionMetadata(scheduleId, description);
+
+            return Pair.of("", Boolean.TRUE);
+        } catch (Exception e) {
+            return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
+        }
+    }
+
+    @Transactional
     public Pair<?, Boolean> deleteSchedule(Integer scheduleId) {
         long scheduleCount = scheduleRepository.count();
         long conferenceCount = conferenceRepository.count();

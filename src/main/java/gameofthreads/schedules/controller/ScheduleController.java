@@ -47,6 +47,17 @@ public class ScheduleController {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
+    @PutMapping("/{scheduleId}")
+    public ResponseEntity<?> modifyScheduleMetadata(@PathVariable Integer scheduleId,
+                                                    @RequestParam(value = "name", required = false) String name,
+                                                    @RequestParam(value = "description", required = false) String description) {
+        Pair<?, Boolean> schedule = scheduleService.modifySchedule(scheduleId, name, description);
+
+        return schedule.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
+    }
+
     @DeleteMapping("/{scheduleId}")
     public ResponseEntity<?> deleteSchedule(@PathVariable Integer scheduleId) {
         Pair<?, Boolean> schedule = scheduleService.deleteSchedule(scheduleId);

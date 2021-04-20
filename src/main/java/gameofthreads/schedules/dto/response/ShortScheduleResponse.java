@@ -26,7 +26,7 @@ public class ShortScheduleResponse implements Serializable {
                 flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()).
                 map(MeetingResponse::new)
                 .collect(Collectors.toList());
-        this.description = "";
+        this.description = scheduleEntity.getDescription();
         this.eventCount = events.size();
         this.firstEventDate = Collections
                 .min(events.stream().map(meetingResponse -> meetingResponse.beginTime).collect(Collectors.toList()));
