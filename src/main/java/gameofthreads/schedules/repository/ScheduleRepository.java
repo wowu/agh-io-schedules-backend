@@ -18,6 +18,9 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities WHERE s.id=:scheduleId")
     Optional<ScheduleEntity> fetchWithConferencesAndMeetings(Integer scheduleId);
 
+    @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities WHERE s.publicLink=:uuid")
+    Optional<ScheduleEntity> fetchWithConferencesAndMeetingsByUuid(String uuid);
+
     @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities")
     Set<ScheduleEntity> fetchAllWithConferencesAndMeetings();
 

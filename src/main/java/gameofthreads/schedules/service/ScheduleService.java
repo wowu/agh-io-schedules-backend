@@ -86,6 +86,15 @@ public class ScheduleService {
         return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
     }
 
+    public Pair<?, Boolean> getScheduleInJson(String uuid) {
+        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.fetchWithConferencesAndMeetingsByUuid(uuid);
+
+        if (scheduleEntity.isEmpty())
+            return Pair.of(ErrorMessage.WRONG_UUID.asJson(), Boolean.FALSE);
+
+        return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
+    }
+
     @Transactional
     public Pair<?, Boolean> modifySchedule(Integer scheduleId, String name, String description) {
         try {
