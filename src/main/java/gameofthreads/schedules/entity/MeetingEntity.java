@@ -26,8 +26,11 @@ public class MeetingEntity {
     @Column(name = "group_name")
     private String groupName;
 
-    @Column(name = "lecturer")
-    private String lecturer;
+    @Column(name = "lecturer_name")
+    private String lecturerName;
+
+    @Column(name = "lecturer_surname")
+    private String lecturerSurname;
 
     @Column(name = "type")
     @Enumerated(EnumType.STRING)
@@ -48,14 +51,15 @@ public class MeetingEntity {
     }
 
     public MeetingEntity(ConferenceEntity conference, LocalDateTime dateStart, LocalDateTime dateEnd, String subject,
-                         String groupName, String lecturer, MeetingType type, Integer lengthInHours,
+                         String groupName, String lecturerName, String lecturerSurname, MeetingType type, Integer lengthInHours,
                          MeetingFormat format, String room) {
         this.conference = conference;
         this.dateStart = dateStart;
         this.dateEnd = dateEnd;
         this.subject = subject;
         this.groupName = groupName;
-        this.lecturer = lecturer;
+        this.lecturerName = lecturerName;
+        this.lecturerSurname = lecturerSurname;
         this.type = type;
         this.lengthInHours = lengthInHours;
         this.format = format;
@@ -86,8 +90,16 @@ public class MeetingEntity {
         return groupName;
     }
 
-    public String getLecturer() {
-        return lecturer;
+    public String getLecturerName() {
+        return lecturerName;
+    }
+
+    public String getLecturerSurname() {
+        return lecturerSurname;
+    }
+
+    public String getFullName() {
+        return lecturerName + " " + lecturerSurname;
     }
 
     public MeetingType getType() {

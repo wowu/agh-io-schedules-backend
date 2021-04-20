@@ -1,8 +1,7 @@
 package gameofthreads.schedules.entity;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -22,16 +21,20 @@ public class ScheduleEntity {
     private Set<SubscriptionEntity> subscriptions;
 
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
-    private List<ConferenceEntity> conferenceEntities;
+    private Set<ConferenceEntity> conferenceEntities;
+
+    @OneToOne(mappedBy = "schedule", cascade = CascadeType.ALL)
+    private ExcelEntity excelEntity;
 
     public ScheduleEntity() {
 
     }
 
-    public ScheduleEntity(String fileName, String publicLink) {
-        this.fileName = fileName;
+    public ScheduleEntity(String fileName, String publicLink, ExcelEntity excelEntity) {
+        this.fileName = fileName.split("\\.")[0];
         this.publicLink = publicLink;
-        this.conferenceEntities = new ArrayList<>();
+        this.conferenceEntities = new HashSet<>();
+        this.excelEntity = excelEntity;
     }
 
     public Integer getId() {
@@ -46,7 +49,7 @@ public class ScheduleEntity {
         return publicLink;
     }
 
-    public List<ConferenceEntity> getConferences() {
+    public Set<ConferenceEntity> getConferences() {
         return conferenceEntities;
     }
 

@@ -2,6 +2,7 @@ package gameofthreads.schedules.security;
 
 import gameofthreads.schedules.security.jwt.OAuth2EntryPoint;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -24,6 +25,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests(config ->
                         config
                                 .antMatchers("/api/auth/*").permitAll()
+                                .antMatchers(HttpMethod.GET, "/api/schedules/").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
+                                .antMatchers(HttpMethod.GET, "/api/schedules/{scheduleId}").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
                                 .antMatchers("/api/schedules/*").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/add").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/addByLink").permitAll()

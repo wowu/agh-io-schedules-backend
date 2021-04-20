@@ -3,11 +3,19 @@ package gameofthreads.schedules.service;
 import gameofthreads.schedules.domain.Conference;
 import gameofthreads.schedules.domain.Meeting;
 import gameofthreads.schedules.domain.Schedule;
+import gameofthreads.schedules.dto.response.DetailedScheduleResponse;
+import gameofthreads.schedules.dto.response.ScheduleListResponse;
+import gameofthreads.schedules.dto.response.ShortScheduleResponse;
 import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
-import gameofthreads.schedules.repository.ScheduleRepository;
+import gameofthreads.schedules.entity.UserEntity;
+import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.repository.*;
+import org.springframework.data.util.Pair;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,63 +25,99 @@ import java.util.stream.Collectors;
 @Service
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
+    private final ConferenceRepository conferenceRepository;
+    private final MeetingRepository meetingRepository;
+    private final ExcelRepository excelRepository;
+    private final UserRepository userRepository;
 
-    public ScheduleService(ScheduleRepository scheduleRepository) {
+    public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository, MeetingRepository meetingRepository, ExcelRepository excelRepository, UserRepository userRepository) {
         this.scheduleRepository = scheduleRepository;
+        this.conferenceRepository = conferenceRepository;
+        this.meetingRepository = meetingRepository;
+        this.excelRepository = excelRepository;
+        this.userRepository = userRepository;
     }
 
-    public String getSchedule(ScheduleEntity scheduleEntity) {
-        Schedule schedule = new Schedule(scheduleEntity);
-        StringBuilder scheduleJson = new StringBuilder("{\"schedule\": \"" + schedule.getFileName()
-                + "\"," + "\"meetings\": [");
-        boolean firstConflict = true;
-
-        for (Conference conference : schedule.getConferences()) {
-            for (Meeting meeting : conference.getMeetings()) {
-                if (!firstConflict)
-                    scheduleJson.append(",");
-                firstConflict = false;
-                scheduleJson.append(meeting.asJson());
-            }
-        }
-
-        scheduleJson.append("]}");
-
-        return scheduleJson.toString();
+    private boolean isUserARole(JwtAuthenticationToken jwtToken, String role) {
+        return jwtToken.getTokenAttributes().get("scope").equals(role);
     }
 
-    public Optional<String> getAllSchedulesInJson() {
-        List<ScheduleEntity> scheduleEntities = scheduleRepository.findAll();
-        StringBuilder allSchedulesJson = new StringBuilder("{\"schedules\": [");
-        boolean firstSchedule = true;
-
+    public Pair<?, Boolean> getAllSchedulesInJson(JwtAuthenticationToken jwtToken) {
         try {
-            for (ScheduleEntity scheduleEntity : scheduleEntities) {
-                if (!firstSchedule)
-                    allSchedulesJson.append(",");
-                firstSchedule = false;
-                allSchedulesJson.append(getSchedule(scheduleEntity));
+            Set<ScheduleEntity> scheduleEntities = scheduleRepository.fetchAllWithConferencesAndMeetings();
+            Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
+
+            if (user.isEmpty()) {
+                return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
+            } else if (isUserARole(jwtToken, "ADMIN")) {
+                return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
+                        .map(ShortScheduleResponse::new)
+                        .collect(Collectors.toList())), Boolean.TRUE);
+            } else {
+                return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
+                        .filter(scheduleEntity -> scheduleEntity.getConferences().stream()
+                                .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
+                                        .map(MeetingEntity::getFullName))
+                                .collect(Collectors.toSet()).contains(user.get().getFullName()))
+                        .map(ShortScheduleResponse::new)
+                        .collect(Collectors.toList())), Boolean.TRUE);
             }
         } catch (Exception e) {
-            return Optional.empty();
+            return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
         }
-
-        allSchedulesJson.append("]}");
-
-        return Optional.of(allSchedulesJson.toString());
     }
 
-    public Optional<String> getScheduleInJson(Integer scheduleId) {
+    public Pair<?, Boolean> getScheduleInJson(Integer scheduleId, JwtAuthenticationToken jwtToken) {
+        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.fetchWithConferencesAndMeetings(scheduleId);
+        Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
+
+        if (scheduleEntity.isEmpty())
+            return Pair.of(ErrorMessage.WRONG_SCHEDULE_ID.asJson(), Boolean.FALSE);
+        else if (user.isEmpty())
+            return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
+        else if (isUserARole(jwtToken, "LECTURER") &&
+                !scheduleEntity.get().getConferences().stream()
+                        .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
+                                .map(MeetingEntity::getFullName))
+                        .collect(Collectors.toSet()).contains(user.get().getFullName())) {
+            return Pair.of(ErrorMessage.INSUFFICIENT_SCOPE.asJson(), Boolean.FALSE);
+        }
+
+        return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
+    }
+
+    @Transactional
+    public Pair<?, Boolean> deleteSchedule(Integer scheduleId) {
+        long scheduleCount = scheduleRepository.count();
+        long conferenceCount = conferenceRepository.count();
+        long meetingCount = meetingRepository.count();
+        long excelCount = excelRepository.count();
+
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
         if (scheduleEntity.isEmpty())
-            return Optional.empty();
+            return Pair.of("", Boolean.FALSE);
+        long conferencesToDelete = conferenceRepository.countConferenceEntitiesBySchedule(scheduleEntity.get());
+        List<ConferenceEntity> conferenceEntities = conferenceRepository.findAllBySchedule(scheduleEntity.get());
+        long meetingsToDelete = conferenceEntities.stream()
+                .map(meetingRepository::countMeetingEntitiesByConference)
+                .reduce(0L, Long::sum);
 
-        return Optional.of(getSchedule(scheduleEntity.get()));
+        scheduleRepository.deleteById(scheduleId);
+
+        if (scheduleCount == scheduleRepository.count() + 1 &&
+                conferenceCount == conferenceRepository.count() + conferencesToDelete &&
+                meetingCount == meetingRepository.count() + meetingsToDelete &&
+                excelCount == excelRepository.count() + 1) {
+            return Pair.of("", Boolean.TRUE);
+        }
+
+        return Pair.of("", Boolean.FALSE);
     }
 
 
     public ScheduleEntity getScheduleEntity(Schedule schedule) {
-        ScheduleEntity scheduleEntity = new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink());
+        ScheduleEntity scheduleEntity =
+                new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink(), schedule.getExcelEntity());
         for (Conference conference : schedule.getConferences()) {
             addConferenceToSchedule(conference, scheduleEntity);
         }
@@ -90,8 +134,9 @@ public class ScheduleService {
 
     public void addMeetingToConference(Meeting meeting, ConferenceEntity conferenceEntity) {
         MeetingEntity meetingEntity = new MeetingEntity(conferenceEntity, meeting.getDateStart(),
-                meeting.getDateEnd(), meeting.getSubject(), meeting.getGroup(), meeting.getLecturer(),
-                meeting.getType(), meeting.getLengthInHours(), meeting.getFormat(), meeting.getRoom());
+                meeting.getDateEnd(), meeting.getSubject(), meeting.getGroup(), meeting.getLecturerName(),
+                meeting.getLecturerSurname(), meeting.getType(), meeting.getLengthInHours(),
+                meeting.getFormat(), meeting.getRoom());
 
         conferenceEntity.getMeetingEntities().add(meetingEntity);
     }

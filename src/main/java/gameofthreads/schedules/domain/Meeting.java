@@ -1,11 +1,14 @@
 package gameofthreads.schedules.domain;
 
+import gameofthreads.schedules.dto.response.UploadConflictResponse;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.MeetingFormat;
 import gameofthreads.schedules.entity.MeetingType;
+import org.springframework.data.util.Pair;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Meeting {
     private final Conference conference;
@@ -13,7 +16,8 @@ public class Meeting {
     private final LocalDateTime dateEnd;
     private final String subject;
     private final String group;
-    private final String lecturer;
+    private final String lecturerName;
+    private final String lecturerSurname;
     private final MeetingType type;
     private final Integer lengthInHours;
     private final MeetingFormat format;
@@ -25,7 +29,8 @@ public class Meeting {
         this.dateEnd = meetingBuilder.dateEnd;
         this.subject = meetingBuilder.subject;
         this.group = meetingBuilder.group;
-        this.lecturer = meetingBuilder.lecturer;
+        this.lecturerName = meetingBuilder.lecturerName;
+        this.lecturerSurname = meetingBuilder.lecturerSurname;
         this.type = meetingBuilder.type;
         this.lengthInHours = meetingBuilder.lengthInHours;
         this.format = meetingBuilder.format;
@@ -38,7 +43,8 @@ public class Meeting {
         this.dateEnd = meetingEntity.getDateEnd();
         this.subject = meetingEntity.getSubject();
         this.group = meetingEntity.getGroup();
-        this.lecturer = meetingEntity.getLecturer();
+        this.lecturerName = meetingEntity.getLecturerName();
+        this.lecturerSurname = meetingEntity.getLecturerSurname();
         this.type = meetingEntity.getType();
         this.lengthInHours = meetingEntity.getLengthInHours();
         this.format = meetingEntity.getFormat();
@@ -50,53 +56,31 @@ public class Meeting {
      *
      * P1 starts between the start and end of P2 (P2.from <= P1.from <= P2.to)
      * P2 starts between the start and end of P1 (P1.from <= P2.from <= P1.to)
-     *
-     * returns true if meetings have no collisions
      */
-    public boolean compareMeeting(Meeting otherMeeting, StringBuilder result) {
+    public Pair<List<UploadConflictResponse.Conflict>, Boolean> compareMeeting(Meeting otherMeeting) {
         boolean overlap1 = !otherMeeting.getDateStart().isAfter(dateStart) && !dateStart.isAfter(otherMeeting.getDateEnd());
         boolean overlap2 = !dateEnd.isAfter(otherMeeting.getDateStart()) && !otherMeeting.getDateStart().isAfter(dateEnd);
+        List<UploadConflictResponse.Conflict> conflicts = new ArrayList<>();
         if (overlap1 || overlap2) {
-            CollisionReason lecturerOverlap = lecturer.equals(otherMeeting.getLecturer()) ? CollisionReason.LECTURER : null;
+            CollisionReason lecturerOverlap = lecturerName.equals(otherMeeting.getLecturerName())
+                    && lecturerSurname.equals(otherMeeting.getLecturerSurname()) ? CollisionReason.LECTURER : null;
             CollisionReason roomOverlap = !(format == MeetingFormat.HOME ||
                     otherMeeting.getFormat() == MeetingFormat.HOME) &&
                     room.equals(otherMeeting.getRoom()) ? CollisionReason.ROOM : null;
             CollisionReason groupOverlap = group.equals(otherMeeting.getGroup()) ? CollisionReason.GROUP : null;
-            StringBuilder reasons = new StringBuilder();
 
             for (CollisionReason reason : new CollisionReason[]{lecturerOverlap, roomOverlap, groupOverlap}) {
                 if (reason != null)
-                    reasons.append(" ").append(CollisionReason.valueOf(reason.name()));
+                    conflicts.add(new UploadConflictResponse
+                            .Conflict(reason.toString(), new UploadConflictResponse.ConflictMeeting(this)));
             }
 
-            if (reasons.length() != 0) {
-                result.append("{\"reason\": \"").append(reasons.toString().trim()).append("\",")
-                        .append("\"meeting\": ").append(this.asJson()).append(",\"conflict meeting\": ")
-                        .append(otherMeeting.asJson()).append("}");
+            if (conflicts.size() != 0) {
+                return Pair.of(conflicts, Boolean.FALSE);
             }
-
-            return reasons.length() == 0;
         }
 
-        return true;
-    }
-
-    public String toString() {
-        return dateStart.format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm"))
-                + "-" + dateEnd.format(DateTimeFormatter.ofPattern("HH:mm"))
-                + " - " + subject + " - " + lecturer + " - Sala " + room;
-    }
-
-    public String asJson() {
-        return "{\"date start\": \"" + dateStart + "\"," +
-                "\"date end\": \"" + dateEnd + "\"," +
-                "\"subject\": \"" + subject + "\"," +
-                "\"group\": \"" + group + "\"," +
-                "\"lecturer\": \"" + lecturer + "\"," +
-                "\"type\": \"" + type + "\"," +
-                "\"length in hours\": \"" + lengthInHours + "\"," +
-                "\"format\": \"" + format + "\"," +
-                "\"room\": \"" + room + "\"}";
+        return Pair.of(conflicts, Boolean.TRUE);
     }
 
     public Conference getConference() {
@@ -119,8 +103,12 @@ public class Meeting {
         return group;
     }
 
-    public String getLecturer() {
-        return lecturer;
+    public String getLecturerName() {
+        return lecturerName;
+    }
+
+    public String getLecturerSurname() {
+        return lecturerSurname;
     }
 
     public MeetingType getType() {
@@ -145,7 +133,8 @@ public class Meeting {
         private LocalDateTime dateEnd;
         private String subject;
         private String group;
-        private String lecturer;
+        private String lecturerName;
+        private String lecturerSurname;
         private MeetingType type;
         private Integer lengthInHours;
         private MeetingFormat format;
@@ -176,8 +165,13 @@ public class Meeting {
             return this;
         }
 
-        public MeetingBuilder lecturer(String lecturer) {
-            this.lecturer = lecturer;
+        public MeetingBuilder lecturerName(String lecturerName) {
+            this.lecturerName = lecturerName;
+            return this;
+        }
+
+        public MeetingBuilder lecturerSurname(String lecturerSurname) {
+            this.lecturerSurname = lecturerSurname;
             return this;
         }
 

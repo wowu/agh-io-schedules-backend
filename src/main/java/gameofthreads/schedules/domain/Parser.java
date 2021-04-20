@@ -94,13 +94,18 @@ public class Parser {
                         .withHour(Integer.parseInt(times.split("-")[1].split("\\.")[0]))
                         .withMinute(Integer.parseInt(times.split("-")[1].split("\\.")[1]));
 
+                String[] lecturerSplited = lecturer.split(" ");
+                if (lecturerSplited.length < 2)
+                    lecturerSplited = new String[]{"", ""};
+
                 Meeting newMeeting = new Meeting.MeetingBuilder()
                         .conference(conference)
                         .dateStart(meetingStartTime)
                         .dateEnd(meetingEndTime)
                         .subject(subject)
                         .group(group)
-                        .lecturer(lecturer)
+                        .lecturerName(lecturerSplited[0])
+                        .lecturerSurname(lecturerSplited[1])
                         .type(type)
                         .lengthInHours((int) lengthInHours)
                         .format(format)

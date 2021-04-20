@@ -1,19 +1,22 @@
 package gameofthreads.schedules.controller;
 
-import gameofthreads.schedules.entity.Excel;
+import gameofthreads.schedules.entity.ExcelEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.FileUploadService;
 import gameofthreads.schedules.service.ScheduleService;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
+import java.io.IOException;
 
 @Controller
 @RequestMapping("api/schedules")
@@ -27,43 +30,51 @@ public class ScheduleController {
     }
 
     @GetMapping()
-    public ResponseEntity<?> getAllSchedules() {
-        Optional<String> schedules = scheduleService.getAllSchedulesInJson();
+    public ResponseEntity<?> getAllSchedules(Authentication token) {
+        Pair<?, Boolean> schedules = scheduleService.getAllSchedulesInJson((JwtAuthenticationToken) token);
 
-        return schedules.
-                map(s -> ResponseEntity.status(HttpStatus.OK).body(s))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.GENERAL_ERROR.asJson()));
+        return schedules.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedules.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedules.getFirst());
     }
 
     @GetMapping("/{scheduleId}")
-    public ResponseEntity<?> getSchedule(@PathVariable Integer scheduleId) {
-        Optional<String> schedule = scheduleService.getScheduleInJson(scheduleId);
+    public ResponseEntity<?> getSchedule(@PathVariable Integer scheduleId, Authentication token) {
+        Pair<?, Boolean> schedule = scheduleService.getScheduleInJson(scheduleId, (JwtAuthenticationToken) token);
 
-        return schedule.
-                map(s -> ResponseEntity.status(HttpStatus.OK).body(s))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_SCHEDULE_ID.asJson()));
+        return schedule.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
+    }
+
+    @DeleteMapping("/{scheduleId}")
+    public ResponseEntity<?> deleteSchedule(@PathVariable Integer scheduleId) {
+        Pair<?, Boolean> schedule = scheduleService.deleteSchedule(scheduleId);
+
+        return schedule.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
     @PostMapping()
-    public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) {
-        Optional<StringBuilder> collisions = fileUploadService.saveFiles(files, scheduleService);
+    public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) throws IOException {
+        Pair<?, Boolean> upload = fileUploadService.saveFiles(files, scheduleService);
 
-        if (collisions.isPresent() && !(collisions.get().length() == 0))
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(collisions.get());
-
-        return ResponseEntity.status(HttpStatus.OK).body("{\"message\" : \"Files uploaded successfully.\"}");
+        return upload.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(upload.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(upload.getFirst());
     }
 
 
     @GetMapping("/{scheduleId}/file")
     public ResponseEntity<?> downloadFile(@PathVariable Integer scheduleId) {
         if (fileUploadService.getFile(scheduleId).isEmpty())
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorMessage.WRONG_DOWNLOAD_ID.asJson());
-        Excel excel = fileUploadService.getFile(scheduleId).get();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorMessage.WRONG_DOWNLOAD_ID.asJson());
+        ExcelEntity excelEntity = fileUploadService.getFile(scheduleId).get();
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(excel.getExcelType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment:filename=\"" + excel.getExcelName() + "\"")
-                .body(new ByteArrayResource(excel.getData()));
+                .contentType(MediaType.parseMediaType(excelEntity.getExcelType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment:filename=\"" + excelEntity.getExcelName() + "\"")
+                .body(new ByteArrayResource(excelEntity.getData()));
     }
 
 }
