@@ -1,8 +1,8 @@
 package gameofthreads.schedules.entity;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "conference")
@@ -16,14 +16,14 @@ public class ConferenceEntity {
     private ScheduleEntity schedule;
 
     @OneToMany(mappedBy = "conference", cascade = CascadeType.ALL)
-    private List<MeetingEntity> meetingEntities;
+    private Set<MeetingEntity> meetingEntities;
 
     public ConferenceEntity() {
     }
 
     public ConferenceEntity(ScheduleEntity schedule) {
         this.schedule = schedule;
-        this.meetingEntities = new ArrayList<>();
+        this.meetingEntities = new HashSet<>();
     }
 
     public Integer getId() {
@@ -34,7 +34,7 @@ public class ConferenceEntity {
         return schedule;
     }
 
-    public List<MeetingEntity> getMeetingEntities() {
+    public Set<MeetingEntity> getMeetingEntities() {
         return meetingEntities;
     }
 

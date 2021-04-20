@@ -44,7 +44,7 @@ public class ScheduleService {
 
     public Pair<?, Boolean> getAllSchedulesInJson(JwtAuthenticationToken jwtToken) {
         try {
-            List<ScheduleEntity> scheduleEntities = scheduleRepository.fetchAllWithConferencesAndMeetings();
+            Set<ScheduleEntity> scheduleEntities = scheduleRepository.fetchAllWithConferencesAndMeetings();
             Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
 
             if (user.isEmpty()) {

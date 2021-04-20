@@ -5,7 +5,6 @@ import gameofthreads.schedules.entity.ExcelEntity;
 import net.bytebuddy.utility.RandomString;
 import org.springframework.data.util.Pair;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,13 +14,13 @@ public class Schedule {
 
     private final String fileName;
     private final String publicLink;
-    private final List<Conference> conferences;
+    private final Set<Conference> conferences;
     private ExcelEntity excelEntity;
 
     public Schedule(String fileName) {
         this.fileName = fileName.split("\\.")[0];
         this.publicLink = generatePublicLink();
-        this.conferences = new ArrayList<>();
+        this.conferences = new HashSet<>();
     }
 
     public static void loadPublicLinks(Set<String> publicLinks) {
@@ -62,7 +61,7 @@ public class Schedule {
         return fileName;
     }
 
-    public List<Conference> getConferences() {
+    public Set<Conference> getConferences() {
         return conferences;
     }
 

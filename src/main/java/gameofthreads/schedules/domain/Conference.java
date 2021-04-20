@@ -5,23 +5,25 @@ import gameofthreads.schedules.entity.ConferenceEntity;
 import org.springframework.data.util.Pair;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Conference {
     private final Schedule schedule;
-    private final List<Meeting> meetings;
+    private final Set<Meeting> meetings;
 
     public Conference(Schedule schedule) {
         this.schedule = schedule;
-        this.meetings = new ArrayList<>();
+        this.meetings = new HashSet<>();
     }
 
     public Conference(Schedule schedule, ConferenceEntity conferenceEntity) {
         this.schedule = schedule;
         this.meetings = conferenceEntity.getMeetingEntities().stream().
                 map(meetingEntity -> new Meeting(this, meetingEntity))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     public Pair<List<UploadConflictResponse.Conflict>, Boolean> compareConference(Meeting meeting, Conference otherConference, boolean sameSchedule) {
@@ -43,7 +45,7 @@ public class Conference {
         return schedule;
     }
 
-    public List<Meeting> getMeetings() {
+    public Set<Meeting> getMeetings() {
         return meetings;
     }
 
