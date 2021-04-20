@@ -43,8 +43,8 @@ public class SubscriptionController {
         return ResponseEntity.ok(result.get());
     }
 
-    @DeleteMapping("/{id}/subscribers/{sub_id}")
-    public ResponseEntity<?> add(@PathVariable Integer id, @PathVariable(name = "sub_id") Integer subscriptionId){
+    @DeleteMapping("/{id}/subscriptions/{sub_id}")
+    public ResponseEntity<?> delete(@PathVariable Integer id, @PathVariable(name = "sub_id") Integer subscriptionId){
         Either<Object, Boolean> result = subscriptionService.delete(subscriptionId);
 
         if(result.isLeft()){
