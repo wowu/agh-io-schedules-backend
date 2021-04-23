@@ -11,6 +11,7 @@ public enum ErrorMessage {
     WRONG_SUBSCRIPTION_ID("Wrong subscription id. Subscription doesn't exist."),
     INCORRECT_EMAIL("Incorrect email."),
     WRONG_SCHEDULE_ID("Wrong schedule id. Schedule doesn't exist."),
+    WRONG_UUID("Wrong uuid."),
     INSUFFICIENT_SCOPE("This request requires higher privileges."),
     NO_FILES("You have not attached any files."),
     GENERAL_ERROR("Something did go wrong. Sorry for that!");

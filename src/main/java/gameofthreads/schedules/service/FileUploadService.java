@@ -34,12 +34,14 @@ public class FileUploadService {
         this.scheduleRepository = scheduleRepository;
     }
 
-    public CollisionResponse checkCollisions(String fileName, ExcelEntity excelEntity) throws IOException {
+    public CollisionResponse checkCollisions(String fileName, ExcelEntity excelEntity, Integer updateScheduleId) throws IOException {
         if (!fileName.contains(".xlsx") && !fileName.contains(".xls"))
             return new CollisionResponse(null, null, ErrorMessage.GENERAL_ERROR, Boolean.FALSE);
         Parser parser = new Parser(fileName, excelEntity.getData());
         Optional<Schedule> optSchedule = parser.parse();
-        List<ExcelEntity> excelEntities = excelRepository.findAll();
+        List<ExcelEntity> excelEntities = (updateScheduleId == null) ?
+                excelRepository.findAll() :
+                excelRepository.findAllWithoutId(updateScheduleId);
         if (optSchedule.isPresent()) {
             CollisionDetector collisionDetector = new CollisionDetector(optSchedule.get());
             collisionDetector.loadSchedules(excelEntities);
@@ -61,7 +63,7 @@ public class FileUploadService {
         for (MultipartFile file : files) {
             String fileName = file.getOriginalFilename();
             ExcelEntity excelEntity = new ExcelEntity(fileName, file.getContentType(), file.getBytes());
-            CollisionResponse collisionResponse = checkCollisions(Objects.requireNonNull(fileName), excelEntity);
+            CollisionResponse collisionResponse = checkCollisions(Objects.requireNonNull(fileName), excelEntity, null);
             if (collisionResponse.noCollisions) {
                 collisionResponse.schedule.setExcelEntity(excelEntity);
                 ScheduleEntity scheduleEntity = scheduleService.getScheduleEntity(collisionResponse.schedule);
@@ -83,12 +85,32 @@ public class FileUploadService {
                 .map(DetailedScheduleResponse::new).collect(Collectors.toList())), Boolean.TRUE);
     }
 
-    public Optional<ExcelEntity> getFile(Integer fileId) {
-        return excelRepository.findById(fileId);
+    @Transactional
+    public Pair<?, Boolean> updateSchedule(MultipartFile file, Integer scheduleId, ScheduleService scheduleService) throws IOException {
+        if (!scheduleRepository.existsById(scheduleId))
+            return Pair.of(ErrorMessage.WRONG_SCHEDULE_ID.asJson(), Boolean.FALSE);
+
+        String fileName = file.getOriginalFilename();
+        approvedExcelEntities = new ArrayList<>();
+
+        ExcelEntity excelEntity = new ExcelEntity(fileName, file.getContentType(), file.getBytes());
+        CollisionResponse collisionResponse = checkCollisions(Objects.requireNonNull(fileName), excelEntity, scheduleId);
+        if (collisionResponse.noCollisions) {
+            collisionResponse.schedule.setExcelEntity(excelEntity);
+            ScheduleEntity scheduleEntity = scheduleService.getScheduleEntity(collisionResponse.schedule);
+            excelEntity.setSchedule(scheduleEntity);
+
+            scheduleService.deleteSchedule(scheduleId);
+            scheduleRepository.save(scheduleEntity);
+
+            return Pair.of(new DetailedScheduleResponse(scheduleEntity), Boolean.TRUE);
+        } else {
+            return Pair.of(collisionResponse.conflictSchedule, Boolean.FALSE);
+        }
     }
 
-    public List<ExcelEntity> getFiles() {
-        return excelRepository.findAll();
+    public Optional<ExcelEntity> getFile(Integer fileId) {
+        return excelRepository.findById(fileId);
     }
 
     private static class CollisionResponse {

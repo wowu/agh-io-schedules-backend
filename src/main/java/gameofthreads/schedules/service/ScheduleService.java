@@ -86,6 +86,31 @@ public class ScheduleService {
         return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
     }
 
+    public Pair<?, Boolean> getScheduleInJson(String uuid) {
+        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.fetchWithConferencesAndMeetingsByUuid(uuid);
+
+        if (scheduleEntity.isEmpty())
+            return Pair.of(ErrorMessage.WRONG_UUID.asJson(), Boolean.FALSE);
+
+        return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
+    }
+
+    @Transactional
+    public Pair<?, Boolean> modifySchedule(Integer scheduleId, String name, String description) {
+        try {
+            if (name != null && description != null)
+                scheduleRepository.updateAllMetadata(scheduleId, name, description);
+            else if (name != null)
+                scheduleRepository.updateFilenameMetadata(scheduleId, name);
+            else if (description != null)
+                scheduleRepository.updateDescriptionMetadata(scheduleId, description);
+
+            return Pair.of("", Boolean.TRUE);
+        } catch (Exception e) {
+            return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
+        }
+    }
+
     @Transactional
     public Pair<?, Boolean> deleteSchedule(Integer scheduleId) {
         long scheduleCount = scheduleRepository.count();

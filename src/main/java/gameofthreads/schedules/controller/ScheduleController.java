@@ -47,6 +47,17 @@ public class ScheduleController {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
+    @PutMapping("/{scheduleId}")
+    public ResponseEntity<?> modifyScheduleMetadata(@PathVariable Integer scheduleId,
+                                                    @RequestParam(value = "name", required = false) String name,
+                                                    @RequestParam(value = "description", required = false) String description) {
+        Pair<?, Boolean> schedule = scheduleService.modifySchedule(scheduleId, name, description);
+
+        return schedule.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
+    }
+
     @DeleteMapping("/{scheduleId}")
     public ResponseEntity<?> deleteSchedule(@PathVariable Integer scheduleId) {
         Pair<?, Boolean> schedule = scheduleService.deleteSchedule(scheduleId);
@@ -65,6 +76,14 @@ public class ScheduleController {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(upload.getFirst());
     }
 
+    @PostMapping("/{scheduleId}/file")
+    public ResponseEntity<?> changeSchedule(@PathVariable Integer scheduleId, @RequestParam("file") MultipartFile file) throws IOException {
+        Pair<?, Boolean> update = fileUploadService.updateSchedule(file, scheduleId, scheduleService);
+
+        return update.getSecond() ?
+                ResponseEntity.status(HttpStatus.OK).body(update.getFirst()) :
+                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(update.getFirst());
+    }
 
     @GetMapping("/{scheduleId}/file")
     public ResponseEntity<?> downloadFile(@PathVariable Integer scheduleId) {

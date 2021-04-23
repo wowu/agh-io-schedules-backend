@@ -30,6 +30,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                                 .antMatchers("/api/schedules/*").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/add").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/addByLink").permitAll()
+                                .antMatchers("/api/public/schedules/{uuid}").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer()

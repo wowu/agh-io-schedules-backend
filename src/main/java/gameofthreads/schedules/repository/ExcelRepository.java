@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface ExcelRepository extends JpaRepository<ExcelEntity, Integer> {
-    @Query("SELECT e.excelName from ExcelEntity e")
-    List<String> findAllExcelNames();
+    @Query("SELECT e FROM ExcelEntity e  LEFT JOIN FETCH e.schedule as s WHERE NOT s.id=:scheduleId")
+    List<ExcelEntity> findAllWithoutId(Integer scheduleId);
 }
