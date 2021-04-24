@@ -8,6 +8,7 @@ import gameofthreads.schedules.util.Validator;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +25,10 @@ public class LecturerService {
         return lecturerRepository.findAll();
     }
 
+    @Transactional
     public Either<Object, Boolean> delete(Integer id){
         if(lecturerRepository.findById(id).isEmpty()){
-            return Either.left(ErrorMessage.WRONG_LECTURED_ID.asJson());
+            return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
         lecturerRepository.deleteById(id);
         return Either.right(true);
@@ -45,6 +47,7 @@ public class LecturerService {
                 .getOrElse(() -> Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson()));
     }
 
+    @Transactional
     public Either<Object, LecturerEntity> update(Integer id, AddLecturerRequest lecturerRequest){
         if(!Validator.validateEmail(lecturerRequest.email)){
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
@@ -53,7 +56,7 @@ public class LecturerService {
         Optional<LecturerEntity> entity = lecturerRepository.findById(id);
 
         if(entity.isEmpty()){
-            return Either.left(ErrorMessage.WRONG_LECTURED_ID.asJson());
+            return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
 
         LecturerEntity lecturerEntity = entity.map(lecturer -> {
@@ -64,11 +67,8 @@ public class LecturerService {
             return lecturer;
         }).get();
 
-        Try<LecturerEntity> trySave = Try.of(() -> lecturerRepository.save(lecturerEntity));
-
-        return trySave
-                .map(Either::right)
-                .getOrElse(() -> Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson()));
+        lecturerRepository.save(lecturerEntity);
+        return Either.right(lecturerEntity);
     }
 
 }
