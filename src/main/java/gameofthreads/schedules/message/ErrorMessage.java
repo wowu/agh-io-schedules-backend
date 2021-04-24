@@ -14,7 +14,9 @@ public enum ErrorMessage {
     WRONG_UUID("Wrong uuid."),
     INSUFFICIENT_SCOPE("This request requires higher privileges."),
     NO_FILES("You have not attached any files."),
-    GENERAL_ERROR("Something did go wrong. Sorry for that!");
+    GENERAL_ERROR("Something did go wrong. Sorry for that!"),
+    NOT_AVAILABLE_EMAIL("This e-mail is not available."),
+    WRONG_LECTURER_ID("Wrong lecturer id. Lecturer doesn't exist");
 
     private final String text;
 
