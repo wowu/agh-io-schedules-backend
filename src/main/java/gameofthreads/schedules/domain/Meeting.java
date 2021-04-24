@@ -59,7 +59,7 @@ public class Meeting {
      */
     public Pair<List<UploadConflictResponse.Conflict>, Boolean> compareMeeting(Meeting otherMeeting) {
         boolean overlap1 = !otherMeeting.getDateStart().isAfter(dateStart) && !dateStart.isAfter(otherMeeting.getDateEnd());
-        boolean overlap2 = !dateEnd.isAfter(otherMeeting.getDateStart()) && !otherMeeting.getDateStart().isAfter(dateEnd);
+        boolean overlap2 = !dateStart.isAfter(otherMeeting.getDateStart()) && !otherMeeting.getDateStart().isAfter(dateEnd);
         List<UploadConflictResponse.Conflict> conflicts = new ArrayList<>();
         if (overlap1 || overlap2) {
             CollisionReason lecturerOverlap = lecturerName.equals(otherMeeting.getLecturerName())
@@ -72,7 +72,7 @@ public class Meeting {
             for (CollisionReason reason : new CollisionReason[]{lecturerOverlap, roomOverlap, groupOverlap}) {
                 if (reason != null)
                     conflicts.add(new UploadConflictResponse
-                            .Conflict(reason.toString(), new UploadConflictResponse.ConflictMeeting(this)));
+                            .Conflict(reason.toString(), new UploadConflictResponse.ConflictMeeting(otherMeeting)));
             }
 
             if (conflicts.size() != 0) {

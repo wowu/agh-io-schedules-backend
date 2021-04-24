@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @SuppressWarnings("all")
@@ -59,7 +60,6 @@ public class Parser {
                     firstRow = false;
                     continue;
                 }
-
                 Iterator<Cell> cellIterator = nextRow.cellIterator();
 
 
@@ -111,15 +111,17 @@ public class Parser {
                         .format(format)
                         .room(room)
                         .build();
-
-                conference.getMeetings().add(newMeeting);
-
+                if (!newMeeting.getSubject().equals(""))
+                    conference.getMeetings().add(newMeeting);
             }
 
         } catch (IllegalStateException ignored) {
             schedule.getConferences().add(conference);
+        } catch (NoSuchElementException ignored) {
+            schedule.getConferences().add(conference);
+            return Optional.of(schedule);
         } catch (Exception e) {
-            return Optional.empty();
+            return Optional.of(schedule);
         }
 
         return Optional.of(schedule);
