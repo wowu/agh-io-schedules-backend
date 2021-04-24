@@ -24,6 +24,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests(config ->
                         config
+                                .antMatchers("/api/lecturers/**").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/auth/*").permitAll()
                                 .antMatchers(HttpMethod.GET, "/api/schedules/").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
                                 .antMatchers(HttpMethod.GET, "/api/schedules/{scheduleId}").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")

@@ -10,6 +10,7 @@ import io.vavr.control.Try;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LecturerService {
@@ -23,7 +24,10 @@ public class LecturerService {
         return lecturerRepository.findAll();
     }
 
-    public Either<String, Boolean> delete(Integer id){
+    public Either<Object, Boolean> delete(Integer id){
+        if(lecturerRepository.findById(id).isEmpty()){
+            return Either.left(ErrorMessage.WRONG_LECTURED_ID.asJson());
+        }
         lecturerRepository.deleteById(id);
         return Either.right(true);
     }
@@ -41,14 +45,30 @@ public class LecturerService {
                 .getOrElse(() -> Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson()));
     }
 
-    public Either<Object, LecturerEntity> update(AddLecturerRequest lecturerRequest){
+    public Either<Object, LecturerEntity> update(Integer id, AddLecturerRequest lecturerRequest){
         if(!Validator.validateEmail(lecturerRequest.email)){
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
-        return lecturerRepository.findByEmail(lecturerRequest.email)
+        Optional<LecturerEntity> entity = lecturerRepository.findById(id);
+
+        if(entity.isEmpty()){
+            return Either.left(ErrorMessage.WRONG_LECTURED_ID.asJson());
+        }
+
+        LecturerEntity lecturerEntity = entity.map(lecturer -> {
+            lecturer.setName(lecturerRequest.name);
+            lecturer.setSurname(lecturerRequest.surname);
+            lecturer.setEmail(lecturerRequest.email);
+            lecturer.setActiveSubscription(lecturerRequest.activeSubscription);
+            return lecturer;
+        }).get();
+
+        Try<LecturerEntity> trySave = Try.of(() -> lecturerRepository.save(lecturerEntity));
+
+        return trySave
                 .map(Either::right)
-                .orElseGet(() -> Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson()));
+                .getOrElse(() -> Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson()));
     }
 
 }

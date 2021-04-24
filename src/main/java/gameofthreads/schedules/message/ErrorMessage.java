@@ -15,7 +15,8 @@ public enum ErrorMessage {
     INSUFFICIENT_SCOPE("This request requires higher privileges."),
     NO_FILES("You have not attached any files."),
     GENERAL_ERROR("Something did go wrong. Sorry for that!"),
-    NOT_AVAILABLE_EMAIL("This e-mail is not available.");
+    NOT_AVAILABLE_EMAIL("This e-mail is not available."),
+    WRONG_LECTURED_ID("Wrong lecturer id. Lecturer doesn't exist");
 
     private final String text;
 

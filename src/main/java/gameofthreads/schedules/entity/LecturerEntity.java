@@ -34,6 +34,22 @@ public class LecturerEntity implements Serializable {
         this.activeSubscription = addLecturerRequest.activeSubscription;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
+    }
+
+    public void setActiveSubscription(boolean activeSubscription) {
+        this.activeSubscription = activeSubscription;
+    }
+
     public Integer getId() {
         return id;
     }
