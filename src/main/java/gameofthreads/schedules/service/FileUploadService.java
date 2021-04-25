@@ -49,6 +49,7 @@ public class FileUploadService {
             Pair<UploadConflictResponse.ConflictSchedule, Boolean> compareSchedules = collisionDetector.compareSchedules();
             return new CollisionResponse(optSchedule.get(), compareSchedules.getFirst(), null, compareSchedules.getSecond());
         }
+
         return new CollisionResponse(null, null, ErrorMessage.GENERAL_ERROR, Boolean.FALSE);
     }
 
