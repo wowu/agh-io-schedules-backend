@@ -7,16 +7,20 @@ import javax.persistence.*;
 public class SubscriptionEntity {
     @Column(name = "active")
     public boolean active = true;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "email")
-    private String email;
+
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "email_id")
+    private EmailEntity email;
+
     @ManyToOne
     @JoinColumn(name = "schedule_id")
     private ScheduleEntity schedule;
 
-    public SubscriptionEntity(String email, ScheduleEntity schedule) {
+    public SubscriptionEntity(EmailEntity email, ScheduleEntity schedule) {
         this.email = email;
         this.schedule = schedule;
     }
@@ -33,7 +37,7 @@ public class SubscriptionEntity {
     }
 
     public String getEmail() {
-        return email;
+        return email.getEmail();
     }
 
     public void setActive(boolean active) {

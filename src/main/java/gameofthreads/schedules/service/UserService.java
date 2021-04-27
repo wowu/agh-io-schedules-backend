@@ -3,9 +3,11 @@ package gameofthreads.schedules.service;
 import gameofthreads.schedules.dto.request.AddUserRequest;
 import gameofthreads.schedules.dto.response.UserResponse;
 import gameofthreads.schedules.dto.response.UserResponseList;
+import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.UserRepository;
 import io.vavr.control.Either;
@@ -21,15 +23,17 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserRepository userRepository;
     private final LecturerRepository lecturerRepository;
+    private final EmailRepository emailRepository;
 
-    public UserService(UserRepository userRepository, LecturerRepository lecturerRepository) {
+    public UserService(UserRepository userRepository, LecturerRepository lecturerRepository, EmailRepository emailRepository) {
         this.userRepository = userRepository;
         this.lecturerRepository = lecturerRepository;
+        this.emailRepository = emailRepository;
     }
 
     public UserResponseList getAll() {
         List<UserResponse> users = userRepository.findAll().stream()
-                .map(UserResponse::new)
+                .map(userEntity -> new UserResponse(userEntity, userEntity.getEmail().getLecturer().isActiveSubscription()))
                 .collect(Collectors.toList());
         return new UserResponseList(users);
     }
@@ -44,17 +48,17 @@ public class UserService {
     }
 
     public Either<Object, UserResponse> add(AddUserRequest userRequest) {
-        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail(userRequest.email);
-        if (lecturerEntity.isEmpty()) {
+        Optional<EmailEntity> emailEntity = emailRepository.findByEmail(userRequest.email);
+        if (emailEntity.isEmpty()) {
             return Either.left(ErrorMessage.NO_LECTURER_WITH_EMAIL.asJson());
         }
 
         UserEntity userEntity = new UserEntity(userRequest);
-        userEntity.setLecturer(lecturerEntity.get());
+        userEntity.setEmail(emailEntity.get());
         Try<UserEntity> trySave = Try.of(() -> userRepository.save(userEntity));
 
         return trySave.isSuccess() ?
-                Either.right(new UserResponse(userEntity)) :
+                Either.right(new UserResponse(userEntity, userRequest.activeSubscription)) :
                 Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
     }
 
@@ -66,14 +70,20 @@ public class UserService {
             return Either.left(ErrorMessage.WRONG_USER_ID.asJson());
         }
 
+        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email(entity.get().getEmail().getEmail());
+
+        if (lecturerEntity.isEmpty()) {
+            return Either.left(ErrorMessage.NO_LECTURER_WITH_EMAIL.asJson());
+        }
+
         UserEntity userEntity = entity.map(user -> {
             user.setPassword(userRequest.password);
-            user.getLecturer().setActiveSubscription(userRequest.activeSubscription);
+            lecturerEntity.get().setActiveSubscription(userRequest.activeSubscription);
             return user;
         }).get();
 
         userRepository.save(userEntity);
-        return Either.right(new UserResponse(userEntity));
+        return Either.right(new UserResponse(userEntity, userRequest.activeSubscription));
     }
 
 }

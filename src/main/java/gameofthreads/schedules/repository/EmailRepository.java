@@ -1,12 +1,12 @@
 package gameofthreads.schedules.repository;
 
-import gameofthreads.schedules.entity.UserEntity;
+import gameofthreads.schedules.entity.EmailEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Integer> {
-    Optional<UserEntity> findByEmail_Email(String email);
+public interface EmailRepository extends JpaRepository<EmailEntity, Integer> {
+    Optional<EmailEntity> findByEmail(String email);
 }

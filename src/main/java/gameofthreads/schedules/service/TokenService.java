@@ -27,7 +27,7 @@ public class TokenService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity userEntity = userRepository.findByEmail(username).orElseThrow();
+        UserEntity userEntity = userRepository.findByEmail_Email(username).orElseThrow();
         return new UserInfo(userEntity);
     }
 

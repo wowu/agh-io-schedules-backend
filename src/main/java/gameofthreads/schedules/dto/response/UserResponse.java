@@ -9,10 +9,10 @@ public class UserResponse implements Serializable {
     public final String email;
     public final boolean activeSubscription;
 
-    public UserResponse(UserEntity userEntity) {
+    public UserResponse(UserEntity userEntity, boolean activeSubscription) {
         this.id = userEntity.getId();
-        this.email = userEntity.getLecturer().getEmail();
-        this.activeSubscription = userEntity.getLecturer().isActiveSubscription();
+        this.email = userEntity.getEmail().getEmail();
+        this.activeSubscription = activeSubscription;
     }
 
 }

@@ -11,16 +11,16 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "email_id")
+    private EmailEntity email;
+
     @Column(name = "password")
     private String password;
 
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Role role;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "lecturer_id")
-    private LecturerEntity lecturer;
 
     public UserEntity() {
     }
@@ -42,15 +42,15 @@ public class UserEntity {
         this.password = password;
     }
 
+    public void setEmail(EmailEntity email) {
+        this.email = email;
+    }
+
     public Role getRole() {
         return role;
     }
 
-    public LecturerEntity getLecturer() {
-        return lecturer;
-    }
-
-    public void setLecturer(LecturerEntity lecturer) {
-        this.lecturer = lecturer;
+    public EmailEntity getEmail() {
+        return email;
     }
 }
