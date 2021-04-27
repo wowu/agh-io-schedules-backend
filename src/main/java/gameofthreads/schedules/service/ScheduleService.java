@@ -7,9 +7,9 @@ import gameofthreads.schedules.dto.response.DetailedScheduleResponse;
 import gameofthreads.schedules.dto.response.ScheduleListResponse;
 import gameofthreads.schedules.dto.response.ShortScheduleResponse;
 import gameofthreads.schedules.entity.ConferenceEntity;
+import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
-import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.*;
 import org.springframework.data.util.Pair;
@@ -28,13 +28,15 @@ public class ScheduleService {
     private final ConferenceRepository conferenceRepository;
     private final MeetingRepository meetingRepository;
     private final ExcelRepository excelRepository;
+    private final LecturerRepository lecturerRepository;
     private final UserRepository userRepository;
 
-    public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository, MeetingRepository meetingRepository, ExcelRepository excelRepository, UserRepository userRepository) {
+    public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository, MeetingRepository meetingRepository, ExcelRepository excelRepository, LecturerRepository lecturerRepository, UserRepository userRepository) {
         this.scheduleRepository = scheduleRepository;
         this.conferenceRepository = conferenceRepository;
         this.meetingRepository = meetingRepository;
         this.excelRepository = excelRepository;
+        this.lecturerRepository = lecturerRepository;
         this.userRepository = userRepository;
     }
 
@@ -45,9 +47,9 @@ public class ScheduleService {
     public Pair<?, Boolean> getAllSchedulesInJson(JwtAuthenticationToken jwtToken) {
         try {
             Set<ScheduleEntity> scheduleEntities = scheduleRepository.fetchAllWithConferencesAndMeetings();
-            Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
+            Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email((String) jwtToken.getTokenAttributes().get("sub"));
 
-            if (user.isEmpty()) {
+            if (lecturerEntity.isEmpty()) {
                 return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
             } else if (isUserARole(jwtToken, "ADMIN")) {
                 return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
@@ -58,7 +60,7 @@ public class ScheduleService {
                         .filter(scheduleEntity -> scheduleEntity.getConferences().stream()
                                 .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
                                         .map(MeetingEntity::getFullName))
-                                .collect(Collectors.toSet()).contains(user.get().getLecturer().getFullName()))
+                                .collect(Collectors.toSet()).contains(lecturerEntity.get().getFullName()))
                         .map(ShortScheduleResponse::new)
                         .collect(Collectors.toList())), Boolean.TRUE);
             }
@@ -69,17 +71,17 @@ public class ScheduleService {
 
     public Pair<?, Boolean> getScheduleInJson(Integer scheduleId, JwtAuthenticationToken jwtToken) {
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.fetchWithConferencesAndMeetings(scheduleId);
-        Optional<UserEntity> user = userRepository.findById(Integer.parseInt((String) jwtToken.getTokenAttributes().get("userId")));
+        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email((String) jwtToken.getTokenAttributes().get("sub"));
 
         if (scheduleEntity.isEmpty())
             return Pair.of(ErrorMessage.WRONG_SCHEDULE_ID.asJson(), Boolean.FALSE);
-        else if (user.isEmpty())
+        else if (lecturerEntity.isEmpty())
             return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
         else if (isUserARole(jwtToken, "LECTURER") &&
                 !scheduleEntity.get().getConferences().stream()
                         .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
                                 .map(MeetingEntity::getFullName))
-                        .collect(Collectors.toSet()).contains(user.get().getLecturer().getFullName())) {
+                        .collect(Collectors.toSet()).contains(lecturerEntity.get().getFullName())) {
             return Pair.of(ErrorMessage.INSUFFICIENT_SCOPE.asJson(), Boolean.FALSE);
         }
 

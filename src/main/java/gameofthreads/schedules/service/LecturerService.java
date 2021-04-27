@@ -1,8 +1,10 @@
 package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.dto.request.AddLecturerRequest;
+import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.util.Validator;
 import io.vavr.control.Either;
@@ -16,9 +18,11 @@ import java.util.Optional;
 @Service
 public class LecturerService {
     private final LecturerRepository lecturerRepository;
+    private final EmailRepository emailRepository;
 
-    public LecturerService(LecturerRepository lecturerRepository) {
+    public LecturerService(LecturerRepository lecturerRepository, EmailRepository emailRepository) {
         this.lecturerRepository = lecturerRepository;
+        this.emailRepository = emailRepository;
     }
 
     public List<LecturerEntity> getAll() {
@@ -27,10 +31,11 @@ public class LecturerService {
 
     @Transactional
     public Either<Object, Boolean> delete(Integer id) {
-        if (lecturerRepository.findById(id).isEmpty()) {
+        Optional<LecturerEntity> lecturer = lecturerRepository.findById(id);
+        if (lecturer.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
-        lecturerRepository.deleteById(id);
+        emailRepository.deleteById(lecturer.get().getEmailEntity().getId());
         return Either.right(true);
     }
 
@@ -59,10 +64,15 @@ public class LecturerService {
             return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
 
+        Optional<EmailEntity> emailEntity = emailRepository.findByEmail(lecturerRequest.email);
+
         LecturerEntity lecturerEntity = entity.map(lecturer -> {
             lecturer.setName(lecturerRequest.name);
             lecturer.setSurname(lecturerRequest.surname);
-            lecturer.setEmail(lecturerRequest.email);
+            if (emailEntity.isPresent())
+                lecturer.setEmail(emailEntity.get());
+            else
+                lecturer.setEmail(new EmailEntity(lecturerRequest.email));
             lecturer.setActiveSubscription(lecturerRequest.activeSubscription);
             return lecturer;
         }).get();

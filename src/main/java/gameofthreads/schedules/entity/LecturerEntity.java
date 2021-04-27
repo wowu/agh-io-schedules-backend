@@ -12,8 +12,9 @@ public class LecturerEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "email")
-    private String email;
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "email_id")
+    private EmailEntity email;
 
     @Column(name = "name")
     private String name;
@@ -21,17 +22,15 @@ public class LecturerEntity implements Serializable {
     @Column(name = "surname")
     private String surname;
 
-    @Column(name = "subscriptions")
+    @Column(name = "active_subscription")
     private boolean activeSubscription;
 
-    @OneToOne(mappedBy = "lecturer", cascade = CascadeType.ALL)
-    private UserEntity user;
 
     public LecturerEntity() {
     }
 
     public LecturerEntity(AddLecturerRequest addLecturerRequest) {
-        this.email = addLecturerRequest.email;
+        this.email = new EmailEntity(addLecturerRequest.email);
         this.name = addLecturerRequest.name;
         this.surname = addLecturerRequest.surname;
         this.activeSubscription = addLecturerRequest.activeSubscription;
@@ -50,10 +49,14 @@ public class LecturerEntity implements Serializable {
     }
 
     public String getEmail() {
+        return email.getEmail();
+    }
+
+    public EmailEntity getEmailEntity() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(EmailEntity email) {
         this.email = email;
     }
 

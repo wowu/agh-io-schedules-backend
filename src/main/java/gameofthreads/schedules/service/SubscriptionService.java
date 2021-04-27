@@ -2,9 +2,11 @@ package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.dto.response.AddSubscription;
 import gameofthreads.schedules.dto.response.GetSubscribers;
+import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.entity.SubscriptionEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.repository.SubscriptionRepository;
 import gameofthreads.schedules.util.Validator;
@@ -20,10 +22,12 @@ import java.util.stream.Collectors;
 public class SubscriptionService {
     private final ScheduleRepository scheduleRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final EmailRepository emailRepository;
 
-    public SubscriptionService(ScheduleRepository scheduleRepository, SubscriptionRepository subscriptionRepository) {
+    public SubscriptionService(ScheduleRepository scheduleRepository, SubscriptionRepository subscriptionRepository, EmailRepository emailRepository) {
         this.scheduleRepository = scheduleRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.emailRepository = emailRepository;
     }
 
     private Either<Object, ScheduleEntity> findScheduleById(Integer scheduleId) {
@@ -43,8 +47,10 @@ public class SubscriptionService {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
+        EmailEntity emailEntity = emailRepository.findByEmail(email).orElse(new EmailEntity(email));
+
         return findScheduleById(scheduleId)
-                .map(schedule -> new SubscriptionEntity(email, schedule))
+                .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
                 .map(AddSubscription::new);
     }
