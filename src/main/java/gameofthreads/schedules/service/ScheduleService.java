@@ -58,7 +58,7 @@ public class ScheduleService {
                         .filter(scheduleEntity -> scheduleEntity.getConferences().stream()
                                 .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
                                         .map(MeetingEntity::getFullName))
-                                .collect(Collectors.toSet()).contains(user.get().getFullName()))
+                                .collect(Collectors.toSet()).contains(user.get().getLecturer().getFullName()))
                         .map(ShortScheduleResponse::new)
                         .collect(Collectors.toList())), Boolean.TRUE);
             }
@@ -79,7 +79,7 @@ public class ScheduleService {
                 !scheduleEntity.get().getConferences().stream()
                         .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
                                 .map(MeetingEntity::getFullName))
-                        .collect(Collectors.toSet()).contains(user.get().getFullName())) {
+                        .collect(Collectors.toSet()).contains(user.get().getLecturer().getFullName())) {
             return Pair.of(ErrorMessage.INSUFFICIENT_SCOPE.asJson(), Boolean.FALSE);
         }
 
