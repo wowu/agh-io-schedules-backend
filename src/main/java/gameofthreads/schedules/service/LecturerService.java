@@ -21,21 +21,21 @@ public class LecturerService {
         this.lecturerRepository = lecturerRepository;
     }
 
-    public List<LecturerEntity> getAll(){
+    public List<LecturerEntity> getAll() {
         return lecturerRepository.findAll();
     }
 
     @Transactional
-    public Either<Object, Boolean> delete(Integer id){
-        if(lecturerRepository.findById(id).isEmpty()){
+    public Either<Object, Boolean> delete(Integer id) {
+        if (lecturerRepository.findById(id).isEmpty()) {
             return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
         lecturerRepository.deleteById(id);
         return Either.right(true);
     }
 
-    public Either<Object, LecturerEntity> add(AddLecturerRequest lecturerRequest){
-        if(!Validator.validateEmail(lecturerRequest.email)){
+    public Either<Object, LecturerEntity> add(AddLecturerRequest lecturerRequest) {
+        if (!Validator.validateEmail(lecturerRequest.email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
@@ -48,14 +48,14 @@ public class LecturerService {
     }
 
     @Transactional
-    public Either<Object, LecturerEntity> update(Integer id, AddLecturerRequest lecturerRequest){
-        if(!Validator.validateEmail(lecturerRequest.email)){
+    public Either<Object, LecturerEntity> update(Integer id, AddLecturerRequest lecturerRequest) {
+        if (!Validator.validateEmail(lecturerRequest.email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
         Optional<LecturerEntity> entity = lecturerRepository.findById(id);
 
-        if(entity.isEmpty()){
+        if (entity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
 

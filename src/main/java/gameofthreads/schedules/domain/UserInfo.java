@@ -17,7 +17,7 @@ public class UserInfo implements UserDetails {
 
     public UserInfo(UserEntity userEntity) {
         this.id = userEntity.getId();
-        this.username = userEntity.getUsername();
+        this.username = userEntity.getLecturer().getEmail();
         this.password = userEntity.getPassword();
         this.role = userEntity.getRole();
     }

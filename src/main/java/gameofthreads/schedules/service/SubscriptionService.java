@@ -1,7 +1,7 @@
 package gameofthreads.schedules.service;
 
-import gameofthreads.schedules.dto.response.GetSubscribers;
 import gameofthreads.schedules.dto.response.AddSubscription;
+import gameofthreads.schedules.dto.response.GetSubscribers;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.entity.SubscriptionEntity;
 import gameofthreads.schedules.message.ErrorMessage;
@@ -61,7 +61,7 @@ public class SubscriptionService {
     public Either<Object, Boolean> delete(Integer subscriptionId) {
         Optional<SubscriptionEntity> subscriptionEntity = subscriptionRepository.findById(subscriptionId);
 
-        if(subscriptionEntity.isEmpty()){
+        if (subscriptionEntity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_SUBSCRIPTION_ID.asJson());
         }
 

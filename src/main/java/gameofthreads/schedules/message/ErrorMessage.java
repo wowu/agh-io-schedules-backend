@@ -16,7 +16,9 @@ public enum ErrorMessage {
     NO_FILES("You have not attached any files."),
     GENERAL_ERROR("Something did go wrong. Sorry for that!"),
     NOT_AVAILABLE_EMAIL("This e-mail is not available."),
-    WRONG_LECTURER_ID("Wrong lecturer id. Lecturer doesn't exist");
+    WRONG_LECTURER_ID("Wrong lecturer id. Lecturer doesn't exist"),
+    WRONG_USER_ID("Wrong user id. User doesn't exist"),
+    NO_LECTURER_WITH_EMAIL("There is no lecturer with such email.");
 
     private final String text;
 
