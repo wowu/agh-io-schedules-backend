@@ -26,6 +26,9 @@ public class EmailEntity {
         return id;
     }
 
+    public EmailEntity() {
+    }
+
     public EmailEntity(String email) {
         this.email = email;
     }
