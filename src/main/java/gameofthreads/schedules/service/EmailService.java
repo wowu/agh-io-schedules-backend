@@ -44,10 +44,10 @@ public class EmailService {
     }
 
     private Tuple2<LocalDateTime, LocalDateTime> getNextDay() {
-        final LocalDateTime startDate = LocalDateTime.now().minusDays(100)
+        final LocalDateTime startDate = LocalDateTime.now().plusDays(1)
                 .withHour(0).withMinute(0).withSecond(0);
 
-        final LocalDateTime endDate = startDate.plusDays(600);
+        final LocalDateTime endDate = startDate.plusDays(1);
         return Tuple.of(startDate, endDate);
     }
 
