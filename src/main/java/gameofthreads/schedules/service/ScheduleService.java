@@ -49,21 +49,24 @@ public class ScheduleService {
             Set<ScheduleEntity> scheduleEntities = scheduleRepository.fetchAllWithConferencesAndMeetings();
             Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email((String) jwtToken.getTokenAttributes().get("sub"));
 
-            if (lecturerEntity.isEmpty()) {
-                return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
-            } else if (isUserARole(jwtToken, "ADMIN")) {
+            if (isUserARole(jwtToken, "ADMIN")) {
                 return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
-                        .map(ShortScheduleResponse::new)
-                        .collect(Collectors.toList())), Boolean.TRUE);
-            } else {
-                return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
-                        .filter(scheduleEntity -> scheduleEntity.getConferences().stream()
-                                .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
-                                        .map(MeetingEntity::getFullName))
-                                .collect(Collectors.toSet()).contains(lecturerEntity.get().getFullName()))
                         .map(ShortScheduleResponse::new)
                         .collect(Collectors.toList())), Boolean.TRUE);
             }
+
+            if (lecturerEntity.isEmpty()) {
+                return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
+            }
+
+            return Pair.of(new ScheduleListResponse(scheduleEntities.stream()
+                    .filter(scheduleEntity -> scheduleEntity.getConferences().stream()
+                            .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
+                                    .map(MeetingEntity::getFullName))
+                            .collect(Collectors.toSet()).contains(lecturerEntity.get().getFullName()))
+                    .map(ShortScheduleResponse::new)
+                    .collect(Collectors.toList())), Boolean.TRUE);
+
         } catch (Exception e) {
             return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
         }
