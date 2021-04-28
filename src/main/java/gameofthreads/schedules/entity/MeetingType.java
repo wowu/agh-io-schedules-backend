@@ -1,11 +1,19 @@
 package gameofthreads.schedules.entity;
 
+import java.util.Map;
+
 public enum MeetingType {
     LECTURE("W"),
     LABORATORIES("L"),
     CLASSES("C");
 
     public String type;
+
+    private static final Map<MeetingType, String> polishTranslation = Map.of(
+            LECTURE, "Wykład",
+            LABORATORIES, "Laboratoria",
+            CLASSES, "Ćwiczenia"
+    );
 
     MeetingType(String type) {
         this.type = type;
@@ -18,6 +26,10 @@ public enum MeetingType {
             return LABORATORIES;
         else
             return CLASSES;
+    }
+
+    public String getPolishTranslation() {
+        return polishTranslation.get(this);
     }
 
 }
