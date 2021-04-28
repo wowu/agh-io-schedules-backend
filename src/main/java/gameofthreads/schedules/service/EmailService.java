@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.mail.internet.MimeMessage;
@@ -100,6 +101,7 @@ public class EmailService {
         return flattedSubscriptions;
     }
 
+    @Scheduled(cron = "0 0 19 *  * ?")
     public void sendEmails() {
         LOGGER.info("!! Schedule is running : send email with meetings !!");
         var meetingsPerEmail = prepareMeetings();
