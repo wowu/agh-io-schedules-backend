@@ -47,7 +47,7 @@ public class ScheduleController {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
-    @PutMapping("/{scheduleId}")
+    @PutMapping(value = "/{scheduleId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> modifyScheduleMetadata(@PathVariable Integer scheduleId,
                                                     @RequestParam(value = "name", required = false) String name,
                                                     @RequestParam(value = "description", required = false) String description) {
@@ -67,7 +67,7 @@ public class ScheduleController {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
-    @PostMapping()
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) throws IOException {
         Pair<?, Boolean> upload = fileUploadService.saveFiles(files, scheduleService);
 
@@ -76,7 +76,7 @@ public class ScheduleController {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(upload.getFirst());
     }
 
-    @PostMapping("/{scheduleId}/file")
+    @PostMapping(value = "/{scheduleId}/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> changeSchedule(@PathVariable Integer scheduleId, @RequestParam("file") MultipartFile file) throws IOException {
         Pair<?, Boolean> update = fileUploadService.updateSchedule(file, scheduleId, scheduleService);
 

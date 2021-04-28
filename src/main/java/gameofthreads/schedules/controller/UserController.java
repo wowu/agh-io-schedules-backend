@@ -29,7 +29,7 @@ public class UserController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> add(@RequestBody AddUserRequest userRequest) {
+    public ResponseEntity<?> add(@ModelAttribute AddUserRequest userRequest) {
         return userService.add(userRequest)
                 .fold(error -> {
                     LOGGER.info(error.toString());
@@ -47,7 +47,7 @@ public class UserController {
     }
 
     @PutMapping({"/{id}"})
-    public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody AddUserRequest userRequest) {
+    public ResponseEntity<?> update(@PathVariable Integer id, @ModelAttribute AddUserRequest userRequest) {
         Try<Either<Object, UserResponse>> result = Try.of(() -> userService.update(id, userRequest));
 
         if (result.isFailure()) {

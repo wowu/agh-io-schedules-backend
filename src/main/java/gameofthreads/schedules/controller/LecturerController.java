@@ -1,7 +1,7 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.request.AddLecturerRequest;
-import gameofthreads.schedules.entity.LecturerEntity;
+import gameofthreads.schedules.dto.response.LecturerResponse;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.LecturerService;
 import io.vavr.control.Either;
@@ -28,7 +28,7 @@ public class LecturerController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> add(@RequestBody AddLecturerRequest lecturerRequest) {
+    public ResponseEntity<?> add(@ModelAttribute AddLecturerRequest lecturerRequest) {
         return lecturerService.add(lecturerRequest)
                 .fold(error -> {
                     LOGGER.info(error.toString());
@@ -46,8 +46,8 @@ public class LecturerController {
     }
 
     @PutMapping({"/{id}"})
-    public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody AddLecturerRequest addLecturerRequest) {
-        Try<Either<Object, LecturerEntity>> result = Try.of(() -> lecturerService.update(id, addLecturerRequest));
+    public ResponseEntity<?> update(@PathVariable Integer id, @ModelAttribute AddLecturerRequest addLecturerRequest) {
+        Try<Either<Object, LecturerResponse>> result = Try.of(() -> lecturerService.update(id, addLecturerRequest));
 
         if (result.isFailure()) {
             LOGGER.error(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
