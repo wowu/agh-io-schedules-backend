@@ -9,6 +9,7 @@ import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ public class LecturerController {
         return ResponseEntity.ok(lecturerService.getAll());
     }
 
-    @PostMapping()
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> add(@ModelAttribute AddLecturerRequest lecturerRequest) {
         return lecturerService.add(lecturerRequest)
                 .fold(error -> {
@@ -45,7 +46,7 @@ public class LecturerController {
                 }, ResponseEntity::ok);
     }
 
-    @PutMapping({"/{id}"})
+    @PutMapping(value = {"/{id}"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> update(@PathVariable Integer id, @ModelAttribute AddLecturerRequest addLecturerRequest) {
         Try<Either<Object, LecturerResponse>> result = Try.of(() -> lecturerService.update(id, addLecturerRequest));
 

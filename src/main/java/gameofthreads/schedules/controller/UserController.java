@@ -10,6 +10,7 @@ import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +29,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getAll());
     }
 
-    @PostMapping()
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> add(@ModelAttribute AddUserRequest userRequest) {
         return userService.add(userRequest)
                 .fold(error -> {
@@ -46,7 +47,7 @@ public class UserController {
                 }, ResponseEntity::ok);
     }
 
-    @PutMapping({"/{id}"})
+    @PutMapping(value = {"/{id}"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> update(@PathVariable Integer id, @ModelAttribute AddUserRequest userRequest) {
         Try<Either<Object, UserResponse>> result = Try.of(() -> userService.update(id, userRequest));
 

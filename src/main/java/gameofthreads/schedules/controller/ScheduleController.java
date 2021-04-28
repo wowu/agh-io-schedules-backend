@@ -68,7 +68,7 @@ public class ScheduleController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadFile(@RequestParam("files") MultipartFile[] files) throws IOException {
+    public ResponseEntity<?> uploadFile(@RequestParam("files[]") MultipartFile[] files) throws IOException {
         Pair<?, Boolean> upload = fileUploadService.saveFiles(files, scheduleService);
 
         return upload.getSecond() ?
