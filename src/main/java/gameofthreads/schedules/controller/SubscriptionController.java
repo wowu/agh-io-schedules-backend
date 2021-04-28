@@ -6,6 +6,7 @@ import gameofthreads.schedules.service.SubscriptionService;
 import io.vavr.control.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class SubscriptionController {
         this.subscriptionService = subscriptionService;
     }
 
-    @PostMapping("/{id}/subscribers")
+    @PostMapping(value = "/{id}/subscribers", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> add(@PathVariable Integer id, @RequestParam String email) {
         Either<Object, AddSubscription> result = subscriptionService.add(id, email);
 

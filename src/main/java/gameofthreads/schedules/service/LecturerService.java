@@ -1,6 +1,7 @@
 package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.dto.request.AddLecturerRequest;
+import gameofthreads.schedules.dto.response.LecturerResponse;
 import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.message.ErrorMessage;
@@ -39,7 +40,7 @@ public class LecturerService {
         return Either.right(true);
     }
 
-    public Either<Object, LecturerEntity> add(AddLecturerRequest lecturerRequest) {
+    public Either<Object, LecturerResponse> add(AddLecturerRequest lecturerRequest) {
         if (!Validator.validateEmail(lecturerRequest.email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
@@ -48,12 +49,13 @@ public class LecturerService {
         Try<LecturerEntity> trySave = Try.of(() -> lecturerRepository.save(lecturerEntity));
 
         return trySave
+                .map(LecturerResponse::new)
                 .map(Either::right)
                 .getOrElse(() -> Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson()));
     }
 
     @Transactional
-    public Either<Object, LecturerEntity> update(Integer id, AddLecturerRequest lecturerRequest) {
+    public Either<Object, LecturerResponse> update(Integer id, AddLecturerRequest lecturerRequest) {
         if (!Validator.validateEmail(lecturerRequest.email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
@@ -78,7 +80,7 @@ public class LecturerService {
         }).get();
 
         lecturerRepository.save(lecturerEntity);
-        return Either.right(lecturerEntity);
+        return Either.right(new LecturerResponse(lecturerEntity));
     }
 
 }

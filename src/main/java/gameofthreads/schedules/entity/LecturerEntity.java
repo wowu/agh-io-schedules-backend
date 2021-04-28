@@ -72,4 +72,12 @@ public class LecturerEntity implements Serializable {
         this.activeSubscription = activeSubscription;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
 }
