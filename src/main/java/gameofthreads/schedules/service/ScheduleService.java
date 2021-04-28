@@ -76,11 +76,17 @@ public class ScheduleService {
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.fetchWithConferencesAndMeetings(scheduleId);
         Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email((String) jwtToken.getTokenAttributes().get("sub"));
 
-        if (scheduleEntity.isEmpty())
+        if (scheduleEntity.isEmpty()) {
             return Pair.of(ErrorMessage.WRONG_SCHEDULE_ID.asJson(), Boolean.FALSE);
-        else if (lecturerEntity.isEmpty())
+        }
+
+        if(isUserARole(jwtToken, "ADMIN")){
+            return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
+        }
+
+        if (lecturerEntity.isEmpty())
             return Pair.of(ErrorMessage.WRONG_USERNAME.asJson(), Boolean.FALSE);
-        else if (isUserARole(jwtToken, "LECTURER") &&
+        if (isUserARole(jwtToken, "LECTURER") &&
                 !scheduleEntity.get().getConferences().stream()
                         .flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream()
                                 .map(MeetingEntity::getFullName))
