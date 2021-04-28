@@ -18,9 +18,9 @@ public class HtmlCreator {
         return "<h3>Cześć " + fullName + " !</h3>" +
                 "<p>" +
                 "Jak Ci mija dzień? Mam nadzieję, że jest super! " +
-                "Pamiętasz o zblizającej się konferencji? " +
+                "Pamiętasz o zbliżającej się konferencji? " +
                 "Jeśli nie, to nie musisz się martwić. " +
-                "Poniżej znajduję się lista wydarzeń, które mogą Cie zainteresować." +
+                "Poniżej znajduje się lista wydarzeń, które mogą Cię zainteresować." +
                 "<p>";
     }
 
