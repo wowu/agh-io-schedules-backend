@@ -13,6 +13,7 @@ repositories {
 }
 
 dependencies {
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '2.3.6.RELEASE'
     implementation group: 'io.vavr', name: 'vavr', version: '0.10.3'
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: '2.3.0.RELEASE'
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.64'
