@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LecturerService {
@@ -26,8 +27,11 @@ public class LecturerService {
         this.emailRepository = emailRepository;
     }
 
-    public List<LecturerEntity> getAll() {
-        return lecturerRepository.findAll();
+    public List<LecturerResponse> getAll() {
+        return lecturerRepository.findAll()
+                .stream()
+                .map(LecturerResponse::new)
+                .collect(Collectors.toList());
     }
 
     @Transactional
