@@ -1,6 +1,7 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.request.AddUserRequest;
+import gameofthreads.schedules.dto.response.LecturerResponse;
 import gameofthreads.schedules.dto.response.UserResponse;
 import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
@@ -31,7 +32,13 @@ public class UserController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> add(@ModelAttribute AddUserRequest userRequest) {
-        return userService.add(userRequest)
+        Try<Either<Object, UserResponse>> duplicateKey = Try.of(() -> userService.add(userRequest));
+
+        if (duplicateKey.isFailure()) {
+            return ResponseEntity.badRequest().body(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
+        }
+
+        return duplicateKey.get()
                 .fold(error -> {
                     LOGGER.info(error.toString());
                     return ResponseEntity.badRequest().body(error);
