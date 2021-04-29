@@ -60,12 +60,4 @@ public class EmailEntity {
         this.user = user;
     }
 
-    public Set<SubscriptionEntity> getSubscription() {
-        return subscription;
-    }
-
-    public void setSubscription(Set<SubscriptionEntity> subscription) {
-        this.subscription = subscription;
-    }
-
 }
