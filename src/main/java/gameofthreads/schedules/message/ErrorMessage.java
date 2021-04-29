@@ -18,7 +18,8 @@ public enum ErrorMessage {
     NOT_AVAILABLE_EMAIL("This e-mail is not available."),
     WRONG_LECTURER_ID("Wrong lecturer id. Lecturer doesn't exist"),
     WRONG_USER_ID("Wrong user id. User doesn't exist"),
-    NO_LECTURER_WITH_EMAIL("There is no lecturer with such email.");
+    NO_LECTURER_WITH_EMAIL("There is no lecturer with such email."),
+    EXISTING_SUBSCRIPTION("There is a subscription for this schedule with this email.");
 
     private final String text;
 

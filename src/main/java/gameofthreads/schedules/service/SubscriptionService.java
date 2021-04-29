@@ -49,7 +49,13 @@ public class SubscriptionService {
 
         EmailEntity emailEntity = emailRepository.findByEmail(email).orElse(new EmailEntity(email));
 
-        return findScheduleById(scheduleId)
+        var scheduleEntity = findScheduleById(scheduleId);
+
+        if (scheduleEntity.isRight() && scheduleEntity.get().getSubscriptions().stream().filter(subscriptionEntity -> subscriptionEntity.getEmail().equals(email)).collect(Collectors.toSet()).size() > 0) {
+            return Either.left(ErrorMessage.EXISTING_SUBSCRIPTION.asJson());
+        }
+
+        return scheduleEntity
                 .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
                 .map(AddSubscription::new);
