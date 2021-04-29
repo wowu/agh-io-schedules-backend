@@ -35,4 +35,6 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     @Modifying
     @Query("UPDATE ScheduleEntity s SET s.description=:description where s.id=:scheduleId")
     void updateDescriptionMetadata(Integer scheduleId, @Param(value = "description") String description);
+
+    Optional<ScheduleEntity> findByPublicLink(String uuid);
 }
