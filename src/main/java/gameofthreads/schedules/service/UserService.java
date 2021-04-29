@@ -11,25 +11,26 @@ import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.UserRepository;
 import io.vavr.control.Either;
-import io.vavr.control.Try;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+    private final PasswordEncoder passwordEncoder;
     private final EmailRepository emailRepository;
     private final UserRepository userRepository;
     private final LecturerRepository lecturerRepository;
 
-    public UserService(EmailRepository emailRepository, UserRepository userRepository,
-                       LecturerRepository lecturerRepository) {
+    public UserService(PasswordEncoder passwordEncoder, EmailRepository emailRepository,
+                       UserRepository userRepository, LecturerRepository lecturerRepository) {
 
+        this.passwordEncoder = passwordEncoder;
         this.emailRepository = emailRepository;
         this.userRepository = userRepository;
         this.lecturerRepository = lecturerRepository;
@@ -66,10 +67,13 @@ public class UserService {
             return Either.left(ErrorMessage.NO_LECTURER_WITH_EMAIL.asJson());
         }
 
-        UserEntity userEntity = new UserEntity(userRequest);
+        String password = passwordEncoder.encode(userRequest.password);
+        UserEntity userEntity = new UserEntity(password);
+
         userEntity.setEmail(lecturerEmail.get());
         lecturerEmail.get().setUser(userEntity);
         userRepository.save(userEntity);
+
         return Either.right(new UserResponse(userEntity.getEmailEntity()));
     }
 

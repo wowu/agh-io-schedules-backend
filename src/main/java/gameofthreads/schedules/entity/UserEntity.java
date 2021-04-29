@@ -25,8 +25,8 @@ public class UserEntity {
     public UserEntity() {
     }
 
-    public UserEntity(AddUserRequest addUserRequest) {
-        this.password = addUserRequest.password;
+    public UserEntity(String password) {
+        this.password = password;
         this.role = Role.LECTURER;
     }
 
