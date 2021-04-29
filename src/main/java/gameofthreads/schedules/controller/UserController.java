@@ -48,15 +48,10 @@ public class UserController {
     }
 
     @PutMapping(value = {"/{id}"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> update(@PathVariable Integer id, @ModelAttribute AddUserRequest userRequest) {
-        Try<Either<Object, UserResponse>> result = Try.of(() -> userService.update(id, userRequest));
+    public ResponseEntity<?> update(@PathVariable Integer id, @RequestParam(required = false) String password,
+                                    @RequestParam(required = false) Boolean activeSubscription) {
 
-        if (result.isFailure()) {
-            LOGGER.error(ErrorMessage.WRONG_USER_ID.asJson());
-            return ResponseEntity.badRequest().body(ErrorMessage.WRONG_USER_ID.asJson());
-        }
-
-        return userService.update(id, userRequest)
+        return userService.update(id, password, activeSubscription)
                 .fold(error -> {
                     LOGGER.info(error.toString());
                     return ResponseEntity.badRequest().body(error);

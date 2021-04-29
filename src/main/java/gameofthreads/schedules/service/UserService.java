@@ -16,25 +16,34 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
+    private final EmailRepository emailRepository;
     private final UserRepository userRepository;
     private final LecturerRepository lecturerRepository;
-    private final EmailRepository emailRepository;
 
-    public UserService(UserRepository userRepository, LecturerRepository lecturerRepository, EmailRepository emailRepository) {
+    public UserService(EmailRepository emailRepository, UserRepository userRepository,
+                       LecturerRepository lecturerRepository) {
+
+        this.emailRepository = emailRepository;
         this.userRepository = userRepository;
         this.lecturerRepository = lecturerRepository;
-        this.emailRepository = emailRepository;
     }
 
+    @Transactional
     public UserResponseList getAll() {
-        List<UserResponse> users = userRepository.findAll().stream()
-                .map(userEntity -> new UserResponse(userEntity, userEntity.getEmail().getLecturer().isActiveSubscription()))
+        List<UserResponse> users = lecturerRepository.fetchWithUser()
+                .stream()
+                .map(LecturerEntity::getEmailEntity)
+                .filter(emailEntity -> emailEntity.getUser() != null)
+                .map(UserResponse::new)
                 .collect(Collectors.toList());
+
         return new UserResponseList(users);
     }
 
@@ -47,43 +56,47 @@ public class UserService {
         return Either.right(true);
     }
 
+    @Transactional
     public Either<Object, UserResponse> add(AddUserRequest userRequest) {
-        Optional<EmailEntity> emailEntity = emailRepository.findByEmail(userRequest.email);
-        if (emailEntity.isEmpty()) {
+        Optional<EmailEntity> lecturerEmail = emailRepository
+                .findByEmail(userRequest.email)
+                .filter(email -> email.getLecturer() != null);
+
+        if (lecturerEmail.isEmpty()) {
             return Either.left(ErrorMessage.NO_LECTURER_WITH_EMAIL.asJson());
         }
 
         UserEntity userEntity = new UserEntity(userRequest);
-        userEntity.setEmail(emailEntity.get());
-        Try<UserEntity> trySave = Try.of(() -> userRepository.save(userEntity));
-
-        return trySave.isSuccess() ?
-                Either.right(new UserResponse(userEntity, userRequest.activeSubscription)) :
-                Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
+        userEntity.setEmail(lecturerEmail.get());
+        lecturerEmail.get().setUser(userEntity);
+        userRepository.save(userEntity);
+        return Either.right(new UserResponse(userEntity.getEmailEntity()));
     }
 
     @Transactional
-    public Either<Object, UserResponse> update(Integer id, AddUserRequest userRequest) {
-        Optional<UserEntity> entity = userRepository.findById(id);
+    public Either<Object, UserResponse> update(Integer id, String password, Boolean activeSubscription) {
+        Optional<UserEntity> userEntity = userRepository.findById(id);
 
-        if (entity.isEmpty()) {
+        if (userEntity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_USER_ID.asJson());
         }
 
-        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email(entity.get().getEmail().getEmail());
-
-        if (lecturerEntity.isEmpty()) {
-            return Either.left(ErrorMessage.NO_LECTURER_WITH_EMAIL.asJson());
+        if (activeSubscription != null) {
+            userEntity
+                    .map(UserEntity::getEmailEntity)
+                    .map(EmailEntity::getLecturer)
+                    .ifPresent(lecturer -> {
+                        lecturer.setActiveSubscription(activeSubscription);
+                        lecturerRepository.save(lecturer);
+                    });
         }
 
-        UserEntity userEntity = entity.map(user -> {
-            user.setPassword(userRequest.password);
-            lecturerEntity.get().setActiveSubscription(userRequest.activeSubscription);
-            return user;
-        }).get();
+        if (password != null) {
+            UserEntity user = userEntity.get();
+            user.setPassword(password);
+            userRepository.save(user);
+        }
 
-        userRepository.save(userEntity);
-        return Either.right(new UserResponse(userEntity, userRequest.activeSubscription));
+        return Either.right(new UserResponse(Objects.requireNonNull(userEntity.get().getEmailEntity())));
     }
-
 }

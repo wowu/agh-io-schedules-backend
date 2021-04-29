@@ -11,7 +11,7 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "email_id")
     private EmailEntity email;
 
@@ -50,7 +50,7 @@ public class UserEntity {
         return role;
     }
 
-    public EmailEntity getEmail() {
+    public EmailEntity getEmailEntity() {
         return email;
     }
 }
