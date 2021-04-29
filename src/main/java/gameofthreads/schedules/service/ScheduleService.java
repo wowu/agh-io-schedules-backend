@@ -139,7 +139,7 @@ public class ScheduleService {
                 .reduce(0L, Long::sum);
 
         scheduleRepository.deleteById(scheduleId);
-
+    
         if (scheduleCount == scheduleRepository.count() + 1 &&
                 conferenceCount == conferenceRepository.count() + conferencesToDelete &&
                 meetingCount == meetingRepository.count() + meetingsToDelete &&

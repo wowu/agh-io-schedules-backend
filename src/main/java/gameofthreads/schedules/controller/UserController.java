@@ -3,7 +3,6 @@ package gameofthreads.schedules.controller;
 import gameofthreads.schedules.dto.request.AddUserRequest;
 import gameofthreads.schedules.dto.response.LecturerResponse;
 import gameofthreads.schedules.dto.response.UserResponse;
-import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.UserService;
 import io.vavr.control.Either;
@@ -51,7 +50,7 @@ public class UserController {
                 .fold(error -> {
                     LOGGER.info(error.toString());
                     return ResponseEntity.badRequest().body(error);
-                }, ResponseEntity::ok);
+                }, success -> ResponseEntity.noContent().build());
     }
 
     @PutMapping(value = {"/{id}"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

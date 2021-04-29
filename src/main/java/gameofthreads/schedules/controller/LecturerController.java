@@ -43,7 +43,7 @@ public class LecturerController {
                 .fold(error -> {
                     LOGGER.info(error.toString());
                     return ResponseEntity.badRequest().body(error);
-                }, ResponseEntity::ok);
+                }, success -> ResponseEntity.noContent().build());
     }
 
     @PutMapping(value = {"/{id}"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

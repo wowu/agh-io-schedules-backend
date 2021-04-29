@@ -55,7 +55,13 @@ public class SubscriptionService {
 
         EmailEntity emailEntity = emailRepository.findByEmail(email).orElse(new EmailEntity(email));
 
-        return findScheduleById(scheduleId)
+        var scheduleEntity = findScheduleById(scheduleId);
+
+        if (scheduleEntity.isRight() && scheduleEntity.get().getSubscriptions().stream().filter(subscriptionEntity -> subscriptionEntity.getEmail().equals(email)).collect(Collectors.toSet()).size() > 0) {
+            return Either.left(ErrorMessage.EXISTING_SUBSCRIPTION.asJson());
+        }
+
+        return scheduleEntity
                 .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
                 .map(AddSubscription::new);
@@ -90,8 +96,7 @@ public class SubscriptionService {
             return Either.left(ErrorMessage.WRONG_SUBSCRIPTION_ID.asJson());
         }
 
-        subscriptionEntity.get().setActive(false);
-        subscriptionRepository.save(subscriptionEntity.get());
+        subscriptionRepository.delete(subscriptionEntity.get());
 
         return Either.right(true);
     }

@@ -19,7 +19,8 @@ public enum ErrorMessage {
     WRONG_LECTURER_ID("Wrong lecturer id. Lecturer doesn't exist"),
     WRONG_USER_ID("Wrong user id. User doesn't exist"),
     NO_LECTURER_WITH_EMAIL("There is no lecturer with such email."),
-    WRONG_CONFERENCE_UUID("Wrong conference uuid. Conference doesn't exist.");
+    WRONG_CONFERENCE_UUID("Wrong conference uuid. Conference doesn't exist."),
+    EXISTING_SUBSCRIPTION("There is a subscription for this schedule with this email.");
 
     private final String text;
 
