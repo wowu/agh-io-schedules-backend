@@ -58,7 +58,14 @@ public class UserController {
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestParam(required = false) String password,
                                     @RequestParam(required = false) Boolean activeSubscription) {
 
-        return userService.update(id, password, activeSubscription)
+        Try<Either<Object, UserResponse>> result = Try.of(() -> userService.update(id, password, activeSubscription));
+
+        if (result.isFailure()) {
+            LOGGER.error(ErrorMessage.WRONG_USER_ID.asJson());
+            return ResponseEntity.badRequest().body(ErrorMessage.WRONG_USER_ID.asJson());
+        }
+
+        return result.get()
                 .fold(error -> {
                     LOGGER.info(error.toString());
                     return ResponseEntity.badRequest().body(error);
