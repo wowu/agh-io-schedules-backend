@@ -20,7 +20,7 @@ public class ScheduleEntity {
     @Column(name = "public_link")
     private String publicLink;
 
-    @OneToMany(mappedBy = "schedule")
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
     private Set<SubscriptionEntity> subscriptions;
 
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
