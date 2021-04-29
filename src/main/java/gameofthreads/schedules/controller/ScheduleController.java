@@ -63,7 +63,7 @@ public class ScheduleController {
         Pair<?, Boolean> schedule = scheduleService.deleteSchedule(scheduleId);
 
         return schedule.getSecond() ?
-                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
+                ResponseEntity.noContent().build() :
                 ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 

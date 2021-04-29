@@ -77,8 +77,7 @@ public class SubscriptionService {
             return Either.left(ErrorMessage.WRONG_SUBSCRIPTION_ID.asJson());
         }
 
-        subscriptionEntity.get().setActive(false);
-        subscriptionRepository.save(subscriptionEntity.get());
+        subscriptionRepository.delete(subscriptionEntity.get());
 
         return Either.right(true);
     }
