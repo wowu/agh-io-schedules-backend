@@ -16,4 +16,6 @@ public interface SubscriptionRepository extends JpaRepository<SubscriptionEntity
             "WHERE sub.active = true " +
             "AND meeting.dateStart BETWEEN :start AND :end")
     Set<SubscriptionEntity> fetchAll(LocalDateTime start, LocalDateTime end);
+
+    Set<SubscriptionEntity> findBySchedule_Id(Integer scheduleId);
 }

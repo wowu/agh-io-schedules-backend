@@ -53,4 +53,12 @@ public class ExcelEntity {
     public void setSchedule(ScheduleEntity schedule) {
         this.schedule = schedule;
     }
+
+    public void setExcelName(String excelName) {
+        this.excelName = excelName;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
 }

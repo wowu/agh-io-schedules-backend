@@ -57,7 +57,13 @@ public class SubscriptionService {
 
         var scheduleEntity = findScheduleById(scheduleId);
 
-        if (scheduleEntity.isRight() && scheduleEntity.get().getSubscriptions().stream().filter(subscriptionEntity -> subscriptionEntity.getEmail().equals(email)).collect(Collectors.toSet()).size() > 0) {
+        boolean subscriptionExist = subscriptionRepository
+                .findBySchedule_Id(scheduleId)
+                .stream()
+                .map(SubscriptionEntity::getEmail)
+                .anyMatch(subEmail -> subEmail.equals(email));
+
+        if (scheduleEntity.isRight() && subscriptionExist) {
             return Either.left(ErrorMessage.EXISTING_SUBSCRIPTION.asJson());
         }
 

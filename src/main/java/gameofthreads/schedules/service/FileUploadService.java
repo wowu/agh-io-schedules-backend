@@ -88,7 +88,8 @@ public class FileUploadService {
 
     @Transactional
     public Pair<?, Boolean> updateSchedule(MultipartFile file, Integer scheduleId, ScheduleService scheduleService) throws IOException {
-        if (!scheduleRepository.existsById(scheduleId))
+        Optional<ScheduleEntity> schedule = scheduleRepository.findById(scheduleId);
+        if (schedule.isEmpty())
             return Pair.of(ErrorMessage.WRONG_SCHEDULE_ID.asJson(), Boolean.FALSE);
 
         String fileName = file.getOriginalFilename();
@@ -97,14 +98,15 @@ public class FileUploadService {
         ExcelEntity excelEntity = new ExcelEntity(fileName, file.getContentType(), file.getBytes());
         CollisionResponse collisionResponse = checkCollisions(Objects.requireNonNull(fileName), excelEntity, scheduleId);
         if (collisionResponse.noCollisions) {
-            collisionResponse.schedule.setExcelEntity(excelEntity);
-            ScheduleEntity scheduleEntity = scheduleService.getScheduleEntity(collisionResponse.schedule);
-            excelEntity.setSchedule(scheduleEntity);
+            ScheduleEntity newScheduleEntity = scheduleService.getScheduleEntity(collisionResponse.schedule);
+            ScheduleEntity oldScheduleEntity = schedule.get();
+            oldScheduleEntity.setConferenceEntities(newScheduleEntity.getConferences());
+            newScheduleEntity.getConferences().forEach(conferenceEntity -> conferenceEntity.setSchedule(oldScheduleEntity));
+            oldScheduleEntity.getExcelEntity().setExcelName(excelEntity.getExcelName());
+            oldScheduleEntity.getExcelEntity().setData(excelEntity.getData());
 
-            scheduleService.deleteSchedule(scheduleId);
-            scheduleRepository.save(scheduleEntity);
-
-            return Pair.of(new DetailedScheduleResponse(scheduleEntity), Boolean.TRUE);
+            scheduleRepository.save(oldScheduleEntity);
+            return Pair.of(new DetailedScheduleResponse(oldScheduleEntity), Boolean.TRUE);
         } else {
             return Pair.of(collisionResponse.conflictSchedule, Boolean.FALSE);
         }

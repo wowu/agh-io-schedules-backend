@@ -8,6 +8,7 @@ import io.vavr.control.Either;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,9 @@ public class UserController {
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<?> get(@PathVariable Integer id, Authentication token) {
-        return userService.get(id, (JwtAuthenticationToken) token);
+        Pair<HttpStatus, ?> response = userService.get(id, (JwtAuthenticationToken) token);
+
+        return ResponseEntity.status(response.getFirst()).body(response.getSecond());
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

@@ -11,8 +11,8 @@ import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.UserRepository;
 import io.vavr.control.Either;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -56,26 +56,28 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseEntity<?> get(Integer id, JwtAuthenticationToken jwtToken) {
+    public Pair<HttpStatus, ?> get(Integer id, JwtAuthenticationToken jwtToken) {
         Optional<UserEntity> userEntity = userRepository.findById(id);
         Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email((String) jwtToken.getTokenAttributes().get("sub"));
 
         if (userEntity.isEmpty()) {
-            return ResponseEntity.badRequest().body(ErrorMessage.WRONG_USER_ID.asJson());
+            return Pair.of(HttpStatus.BAD_REQUEST, ErrorMessage.WRONG_USER_ID.asJson());
         }
 
         EmailEntity emailEntity = userEntity.get().getEmailEntity();
 
         if (emailEntity.getUser() == null) {
-            return ResponseEntity.badRequest().body(ErrorMessage.NO_USER_WITH_EMAIL.asJson());
+            return Pair.of(HttpStatus.BAD_REQUEST, ErrorMessage.NO_USER_WITH_EMAIL.asJson());
         }
 
         if (isUserARole(jwtToken, "LECTURER") && lecturerEntity.isPresent() &&
-                !lecturerEntity.get().getEmailEntity().getEmail().equals(emailEntity.getEmail())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Forbidden.");
+                lecturerEntity.stream()
+                        .map(LecturerEntity::getEmailEntity)
+                        .map(EmailEntity::getEmail).noneMatch(s -> s.equals(emailEntity.getEmail()))) {
+            return Pair.of(HttpStatus.FORBIDDEN, ErrorMessage.FORBIDDEN_USER.asJson());
         }
 
-        return ResponseEntity.ok(new UserResponse(emailEntity));
+        return Pair.of(HttpStatus.OK, new UserResponse(emailEntity));
     }
 
     @Transactional
