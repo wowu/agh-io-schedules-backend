@@ -64,21 +64,24 @@ public class LecturerService {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
+        final Optional<Integer> emailOwner = emailRepository.findByEmail(lecturerRequest.email)
+                .map(EmailEntity::getLecturer)
+                .map(LecturerEntity::getId);
+
+        if(emailOwner.isPresent() && !emailOwner.get().equals(id)){
+            return Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
+        }
+
         Optional<LecturerEntity> entity = lecturerRepository.findById(id);
 
         if (entity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
 
-        Optional<EmailEntity> emailEntity = emailRepository.findByEmail(lecturerRequest.email);
-
         LecturerEntity lecturerEntity = entity.map(lecturer -> {
             lecturer.setName(lecturerRequest.name);
             lecturer.setSurname(lecturerRequest.surname);
-            if (emailEntity.isPresent())
-                lecturer.setEmail(emailEntity.get());
-            else
-                lecturer.setEmail(new EmailEntity(lecturerRequest.email));
+            lecturer.getEmailEntity().setEmail(lecturerRequest.email);
             lecturer.setActiveSubscription(lecturerRequest.activeSubscription);
             return lecturer;
         }).get();

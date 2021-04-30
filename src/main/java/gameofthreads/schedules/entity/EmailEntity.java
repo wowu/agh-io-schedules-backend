@@ -22,15 +22,18 @@ public class EmailEntity {
     @OneToMany(mappedBy = "email", cascade = CascadeType.ALL)
     private Set<SubscriptionEntity> subscription;
 
+    public EmailEntity(String email) {
+        this.email = email;
+    }
+
+    public EmailEntity () {}
+
     public Integer getId() {
         return id;
     }
 
-    public EmailEntity() {
-    }
-
-    public EmailEntity(String email) {
-        this.email = email;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getEmail() {
@@ -44,4 +47,17 @@ public class EmailEntity {
     public LecturerEntity getLecturer() {
         return lecturer;
     }
+
+    public void setLecturer(LecturerEntity lecturer) {
+        this.lecturer = lecturer;
+    }
+
+    public UserEntity getUser() {
+        return user;
+    }
+
+    public void setUser(UserEntity user) {
+        this.user = user;
+    }
+
 }

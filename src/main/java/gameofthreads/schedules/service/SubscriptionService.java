@@ -42,6 +42,12 @@ public class SubscriptionService {
                 .orElseGet(() -> Either.left(ErrorMessage.WRONG_CONFERENCE_ID.asJson()));
     }
 
+    private Either<Object, ScheduleEntity> findScheduleByUUID(String uuid) {
+        return scheduleRepository.findByPublicLink(uuid)
+                .map(Either::right)
+                .orElseGet(() -> Either.left(ErrorMessage.WRONG_CONFERENCE_UUID.asJson()));
+    }
+
     public Either<Object, AddSubscription> add(Integer scheduleId, String email) {
         if (!Validator.validateEmail(email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
@@ -56,6 +62,19 @@ public class SubscriptionService {
         }
 
         return scheduleEntity
+                .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
+                .map(subscriptionRepository::save)
+                .map(AddSubscription::new);
+    }
+
+    public Either<Object, AddSubscription> add(String uuid, String email) {
+        if (!Validator.validateEmail(email)) {
+            return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
+        }
+
+        EmailEntity emailEntity = emailRepository.findByEmail(email).orElse(new EmailEntity(email));
+
+        return findScheduleByUUID(uuid)
                 .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
                 .map(AddSubscription::new);
