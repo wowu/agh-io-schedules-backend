@@ -64,4 +64,12 @@ public class ScheduleEntity {
     public String getDescription() {
         return description;
     }
+
+    public ExcelEntity getExcelEntity() {
+        return excelEntity;
+    }
+
+    public void setConferenceEntities(Set<ConferenceEntity> conferenceEntities) {
+        this.conferenceEntities = conferenceEntities;
+    }
 }

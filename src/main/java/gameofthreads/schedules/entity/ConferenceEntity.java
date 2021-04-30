@@ -38,4 +38,7 @@ public class ConferenceEntity {
         return meetingEntities;
     }
 
+    public void setSchedule(ScheduleEntity schedule) {
+        this.schedule = schedule;
+    }
 }
