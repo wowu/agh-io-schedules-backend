@@ -68,7 +68,7 @@ public class LecturerService {
                 .map(EmailEntity::getLecturer)
                 .map(LecturerEntity::getId);
 
-        if(emailOwner.isPresent() && !emailOwner.get().equals(id)){
+        if (emailOwner.isPresent() && !emailOwner.get().equals(id)) {
             return Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
         }
 

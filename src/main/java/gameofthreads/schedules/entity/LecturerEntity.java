@@ -36,14 +36,6 @@ public class LecturerEntity implements Serializable {
         this.activeSubscription = addLecturerRequest.activeSubscription;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
     public Integer getId() {
         return id;
     }
@@ -52,12 +44,12 @@ public class LecturerEntity implements Serializable {
         return email.getEmail();
     }
 
-    public EmailEntity getEmailEntity() {
-        return email;
-    }
-
     public void setEmail(EmailEntity email) {
         this.email = email;
+    }
+
+    public EmailEntity getEmailEntity() {
+        return email;
     }
 
     public String getFullName() {
@@ -76,8 +68,16 @@ public class LecturerEntity implements Serializable {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getSurname() {
         return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
 }

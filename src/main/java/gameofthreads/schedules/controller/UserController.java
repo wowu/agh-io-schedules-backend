@@ -1,7 +1,6 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.request.AddUserRequest;
-import gameofthreads.schedules.dto.response.LecturerResponse;
 import gameofthreads.schedules.dto.response.UserResponse;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.UserService;
@@ -12,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,6 +28,11 @@ public class UserController {
     @GetMapping()
     public ResponseEntity<?> getAll() {
         return ResponseEntity.ok(userService.getAll());
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<?> get(@PathVariable Integer id, Authentication token) {
+        return userService.get(id, (JwtAuthenticationToken) token);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
