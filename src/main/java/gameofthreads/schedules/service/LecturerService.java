@@ -2,6 +2,7 @@ package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.dto.request.AddLecturerRequest;
 import gameofthreads.schedules.dto.response.LecturerResponse;
+import gameofthreads.schedules.dto.response.LecturerResponseList;
 import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.message.ErrorMessage;
@@ -27,11 +28,12 @@ public class LecturerService {
         this.emailRepository = emailRepository;
     }
 
-    public List<LecturerResponse> getAll() {
-        return lecturerRepository.findAll()
+    public LecturerResponseList getAll() {
+        List<LecturerResponse> lecturers = lecturerRepository.findAll()
                 .stream()
                 .map(LecturerResponse::new)
                 .collect(Collectors.toList());
+        return new LecturerResponseList(lecturers);
     }
 
     @Transactional
