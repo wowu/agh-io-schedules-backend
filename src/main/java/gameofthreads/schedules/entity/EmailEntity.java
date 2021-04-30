@@ -26,7 +26,8 @@ public class EmailEntity {
         this.email = email;
     }
 
-    public EmailEntity () {}
+    public EmailEntity() {
+    }
 
     public Integer getId() {
         return id;

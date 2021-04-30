@@ -10,11 +10,11 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public class HtmlCreator {
-    private static String tdPack(String value){
+    private static String tdPack(String value) {
         return "<td>" + value + "</td>";
     }
 
-    private static String createGreetings(String fullName){
+    private static String createGreetings(String fullName) {
         return "<h3>Cześć " + fullName + " !</h3>" +
                 "<p>" +
                 "Jak Ci mija dzień? Mam nadzieję, że jest super! " +
@@ -24,7 +24,7 @@ public class HtmlCreator {
                 "<p>";
     }
 
-    private static String createCssStyle(){
+    private static String createCssStyle() {
         return "<style>\n" +
                 "#customers {\n" +
                 "  font-family: Arial, Helvetica, sans-serif;\n" +
@@ -51,7 +51,7 @@ public class HtmlCreator {
                 "</style>";
     }
 
-    private static String createMeetingsTable(Collection<MeetingEntity> meetingEntities){
+    private static String createMeetingsTable(Collection<MeetingEntity> meetingEntities) {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("<table id=\"customers\">");
@@ -70,7 +70,7 @@ public class HtmlCreator {
 
         stringBuilder.append("</tr>");
 
-        for(MeetingEntity meeting : meetingEntities){
+        for (MeetingEntity meeting : meetingEntities) {
             stringBuilder.append("<tr>");
             stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_DATE)));
             stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_TIME)));
@@ -87,13 +87,13 @@ public class HtmlCreator {
         return stringBuilder.toString();
     }
 
-    public static String createMeetingsEmail(List<MeetingEntity> meetingEntities){
+    public static String createMeetingsEmail(List<MeetingEntity> meetingEntities) {
         return createCssStyle() +
                 createGreetings(meetingEntities.get(0).getFullName()) +
                 createMeetingsTable(meetingEntities);
     }
 
-    public static String createConferencesEmail(Set<ConferenceEntity> conferenceEntities){
+    public static String createConferencesEmail(Set<ConferenceEntity> conferenceEntities) {
         int counter = 1;
         final String emptyName = "";
         StringBuilder stringBuilder = new StringBuilder();
@@ -101,7 +101,7 @@ public class HtmlCreator {
         stringBuilder.append(createCssStyle());
         stringBuilder.append(createGreetings(emptyName));
 
-        for(ConferenceEntity conference : conferenceEntities){
+        for (ConferenceEntity conference : conferenceEntities) {
             stringBuilder.append("<h3>Konferencja : ").append(counter).append("</h3>");
             stringBuilder.append(createMeetingsTable(conference.getMeetingEntities()));
             counter++;

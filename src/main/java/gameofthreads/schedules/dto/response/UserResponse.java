@@ -1,7 +1,6 @@
 package gameofthreads.schedules.dto.response;
 
 import gameofthreads.schedules.entity.EmailEntity;
-import gameofthreads.schedules.entity.UserEntity;
 
 import java.io.Serializable;
 

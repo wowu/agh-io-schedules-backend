@@ -11,7 +11,10 @@ import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.UserRepository;
 import io.vavr.control.Either;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +39,10 @@ public class UserService {
         this.lecturerRepository = lecturerRepository;
     }
 
+    private boolean isUserARole(JwtAuthenticationToken jwtToken, String role) {
+        return jwtToken.getTokenAttributes().get("scope").equals(role);
+    }
+
     @Transactional
     public UserResponseList getAll() {
         List<UserResponse> users = lecturerRepository.fetchWithUser()
@@ -46,6 +53,29 @@ public class UserService {
                 .collect(Collectors.toList());
 
         return new UserResponseList(users);
+    }
+
+    @Transactional
+    public ResponseEntity<?> get(Integer id, JwtAuthenticationToken jwtToken) {
+        Optional<UserEntity> userEntity = userRepository.findById(id);
+        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email((String) jwtToken.getTokenAttributes().get("sub"));
+
+        if (userEntity.isEmpty()) {
+            return ResponseEntity.badRequest().body(ErrorMessage.WRONG_USER_ID.asJson());
+        }
+
+        EmailEntity emailEntity = userEntity.get().getEmailEntity();
+
+        if (emailEntity.getUser() == null) {
+            return ResponseEntity.badRequest().body(ErrorMessage.NO_USER_WITH_EMAIL.asJson());
+        }
+
+        if (isUserARole(jwtToken, "LECTURER") && lecturerEntity.isPresent() &&
+                !lecturerEntity.get().getEmailEntity().getEmail().equals(emailEntity.getEmail())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Forbidden.");
+        }
+
+        return ResponseEntity.ok(new UserResponse(emailEntity));
     }
 
     @Transactional

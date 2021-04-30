@@ -115,7 +115,7 @@ public class EmailService {
         var conferencesPerEmail = prepareConferences();
 
         conferencesPerEmail.forEach((email, conferences) -> {
-            if(!meetingsPerEmail.containsKey(email)) {
+            if (!meetingsPerEmail.containsKey(email)) {
                 String htmlMessage = HtmlCreator.createConferencesEmail(conferences);
                 sendEmail(email, htmlMessage);
             }

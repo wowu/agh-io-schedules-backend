@@ -32,6 +32,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                                 .antMatchers("/api/subscription/add").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/subscription/addByLink").permitAll()
                                 .antMatchers(HttpMethod.PUT, "/api/users/{id}").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
+                                .antMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
                                 .antMatchers("/api/users/*").hasAuthority("SCOPE_ADMIN")
                                 .antMatchers("/api/public/schedules/{uuid}").permitAll()
                                 .anyRequest().authenticated()

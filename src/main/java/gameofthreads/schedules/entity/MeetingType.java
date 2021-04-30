@@ -7,13 +7,12 @@ public enum MeetingType {
     LABORATORIES("L"),
     CLASSES("C");
 
-    public String type;
-
     private static final Map<MeetingType, String> polishTranslation = Map.of(
             LECTURE, "Wykład",
             LABORATORIES, "Laboratoria",
             CLASSES, "Ćwiczenia"
     );
+    public String type;
 
     MeetingType(String type) {
         this.type = type;

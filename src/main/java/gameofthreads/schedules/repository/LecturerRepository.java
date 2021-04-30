@@ -11,6 +11,7 @@ import java.util.Set;
 @Repository
 public interface LecturerRepository extends JpaRepository<LecturerEntity, Integer> {
     Optional<LecturerEntity> findByEmail_Email(String email);
+
     Set<LecturerEntity> findByActiveSubscription(boolean isActive);
 
     @Query("SELECT l FROM LecturerEntity AS l LEFT JOIN FETCH l.email AS le LEFT JOIN FETCH le.lecturer")

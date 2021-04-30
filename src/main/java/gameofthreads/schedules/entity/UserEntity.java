@@ -1,7 +1,5 @@
 package gameofthreads.schedules.entity;
 
-import gameofthreads.schedules.dto.request.AddUserRequest;
-
 import javax.persistence.*;
 
 @Entity
