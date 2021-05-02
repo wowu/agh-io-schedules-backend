@@ -110,7 +110,7 @@ public class UserService {
     }
 
     @Transactional
-    public Either<Object, UserResponse> update(Integer id, String password, Boolean activeSubscription) {
+    public Either<Object, UserResponse> update(Integer id, String password, Boolean activeSubscription, String email) {
         Optional<UserEntity> userEntity = userRepository.findById(id);
 
         if (userEntity.isEmpty()) {
@@ -131,6 +131,14 @@ public class UserService {
             UserEntity user = userEntity.get();
             user.setPassword(password);
             userRepository.save(user);
+        }
+
+        if(email != null){
+            userEntity.map(UserEntity::getEmailEntity)
+                    .ifPresent(entity -> {
+                        entity.setEmail(email);
+                        emailRepository.save(entity);
+                    });
         }
 
         return Either.right(new UserResponse(Objects.requireNonNull(userEntity.get().getEmailEntity())));

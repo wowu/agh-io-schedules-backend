@@ -63,14 +63,16 @@ public class UserController {
     }
 
     @PutMapping(value = {"/{id}"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> update(@PathVariable Integer id, @RequestParam(required = false) String password,
-                                    @RequestParam(required = false) Boolean activeSubscription) {
+    public ResponseEntity<?> update(@PathVariable Integer id,
+                                    @RequestParam(required = false) String password,
+                                    @RequestParam(required = false) Boolean activeSubscription,
+                                    @RequestParam(required = false) String email) {
 
-        Try<Either<Object, UserResponse>> result = Try.of(() -> userService.update(id, password, activeSubscription));
+        Try<Either<Object, UserResponse>> result = Try.of(() -> userService.update(id, password, activeSubscription, email));
 
         if (result.isFailure()) {
-            LOGGER.error(ErrorMessage.WRONG_USER_ID.asJson());
-            return ResponseEntity.badRequest().body(ErrorMessage.WRONG_USER_ID.asJson());
+            LOGGER.error(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
+            return ResponseEntity.badRequest().body(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
         }
 
         return result.get()
