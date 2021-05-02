@@ -29,8 +29,8 @@ public class LecturerEntity implements Serializable {
     public LecturerEntity() {
     }
 
-    public LecturerEntity(AddLecturerRequest addLecturerRequest) {
-        this.email = new EmailEntity(addLecturerRequest.email);
+    public LecturerEntity(AddLecturerRequest addLecturerRequest, EmailEntity emailEntity) {
+        this.email = emailEntity;
         this.name = addLecturerRequest.name;
         this.surname = addLecturerRequest.surname;
         this.activeSubscription = addLecturerRequest.activeSubscription;

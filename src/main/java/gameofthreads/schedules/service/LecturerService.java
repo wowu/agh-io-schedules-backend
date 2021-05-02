@@ -46,18 +46,24 @@ public class LecturerService {
         return Either.right(true);
     }
 
+    @Transactional
     public Either<Object, LecturerResponse> add(AddLecturerRequest lecturerRequest) {
         if (!Validator.validateEmail(lecturerRequest.email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
 
-        LecturerEntity lecturerEntity = new LecturerEntity(lecturerRequest);
-        Try<LecturerEntity> trySave = Try.of(() -> lecturerRepository.save(lecturerEntity));
+        Optional<EmailEntity> emailEntity = emailRepository.findByEmail(lecturerRequest.email);
+        boolean isEmailUnavailable = emailEntity.map(EmailEntity::getLecturer).isPresent();
 
-        return trySave
-                .map(LecturerResponse::new)
-                .map(Either::right)
-                .getOrElse(() -> Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson()));
+        if(isEmailUnavailable){
+            return Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
+        }
+
+        EmailEntity email = emailEntity.orElseGet(() -> new EmailEntity(lecturerRequest.email));
+        LecturerEntity lecturerEntity = new LecturerEntity(lecturerRequest, email);
+        lecturerRepository.save(lecturerEntity);
+
+        return Either.right(new LecturerResponse(lecturerEntity));
     }
 
     @Transactional
