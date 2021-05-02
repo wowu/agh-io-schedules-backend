@@ -100,13 +100,15 @@ public class UserService {
         }
 
         String password = passwordEncoder.encode(userRequest.password);
+
+        EmailEntity emailEntity = lecturerEmail.get();
         UserEntity userEntity = new UserEntity(password);
+        userEntity.setEmail(emailEntity);
+        emailEntity.setUser(userEntity);
+        emailEntity.getLecturer().setActiveSubscription(userRequest.activeSubscription);
+        emailRepository.save(emailEntity);
 
-        userEntity.setEmail(lecturerEmail.get());
-        lecturerEmail.get().setUser(userEntity);
-        userRepository.save(userEntity);
-
-        return Either.right(new UserResponse(userEntity.getEmailEntity()));
+        return Either.right(new UserResponse(emailEntity));
     }
 
     @Transactional
