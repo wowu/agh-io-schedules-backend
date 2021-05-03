@@ -9,6 +9,7 @@ import gameofthreads.schedules.dto.response.UploadSuccessfulResponse;
 import gameofthreads.schedules.entity.ExcelEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.repository.ConferenceRepository;
 import gameofthreads.schedules.repository.ExcelRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import org.springframework.data.util.Pair;
@@ -26,11 +27,13 @@ import java.util.stream.Collectors;
 @Service
 public class FileUploadService {
     private final ExcelRepository excelRepository;
+    private final ConferenceRepository conferenceRepository;
     private final ScheduleRepository scheduleRepository;
     private List<ExcelEntity> approvedExcelEntities = new ArrayList<>();
 
-    public FileUploadService(ExcelRepository excelRepository, ScheduleRepository scheduleRepository) {
+    public FileUploadService(ExcelRepository excelRepository, ConferenceRepository conferenceRepository, ScheduleRepository scheduleRepository) {
         this.excelRepository = excelRepository;
+        this.conferenceRepository = conferenceRepository;
         this.scheduleRepository = scheduleRepository;
     }
 
@@ -100,6 +103,7 @@ public class FileUploadService {
         if (collisionResponse.noCollisions) {
             ScheduleEntity newScheduleEntity = scheduleService.getScheduleEntity(collisionResponse.schedule);
             ScheduleEntity oldScheduleEntity = schedule.get();
+            conferenceRepository.deleteAll(oldScheduleEntity.getConferences());
             oldScheduleEntity.setConferenceEntities(newScheduleEntity.getConferences());
             newScheduleEntity.getConferences().forEach(conferenceEntity -> conferenceEntity.setSchedule(oldScheduleEntity));
             oldScheduleEntity.getExcelEntity().setExcelName(excelEntity.getExcelName());
