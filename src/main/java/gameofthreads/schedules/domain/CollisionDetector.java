@@ -20,7 +20,7 @@ public class CollisionDetector {
 
     public void loadSchedules(List<ExcelEntity> excelEntities) throws IOException {
         for (ExcelEntity excelEntity : excelEntities) {
-            Optional<Schedule> newSchedule = new Parser(excelEntity.getExcelName(), excelEntity.getData()).parse();
+            Optional<Schedule> newSchedule = new Parser(excelEntity.getSchedule().getFileName(), excelEntity.getData()).parse();
             newSchedule.ifPresent(schedule -> schedules.add(schedule));
         }
     }

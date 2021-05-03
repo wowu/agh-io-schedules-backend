@@ -21,7 +21,7 @@ public class ExcelEntity {
     @Column(name = "data")
     private byte[] data;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "schedule_id")
     private ScheduleEntity schedule;
 
