@@ -32,6 +32,7 @@ public class LecturerService {
         List<LecturerResponse> lecturers = lecturerRepository.findAll()
                 .stream()
                 .map(LecturerResponse::new)
+                .filter(lecturerResponse -> !lecturerResponse.name.equals("ADMIN"))
                 .collect(Collectors.toList());
         return new LecturerResponseList(lecturers);
     }
