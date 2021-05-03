@@ -131,7 +131,7 @@ public class UserService {
 
         if (password != null) {
             UserEntity user = userEntity.get();
-            user.setPassword(password);
+            user.setPassword(passwordEncoder.encode(password));
             userRepository.save(user);
         }
 
