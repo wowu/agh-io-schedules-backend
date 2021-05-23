@@ -55,7 +55,7 @@ public class EmailService {
         Map<String, List<MeetingEntity>> emails = new HashMap<>();
 
         final Map<String, LecturerEntity> lecturers = lecturerRepository
-                .findByActiveSubscription(true)
+                .findAll()
                 .stream()
                 .collect(Collectors.toMap(LecturerEntity::getFullName, Function.identity()));
 

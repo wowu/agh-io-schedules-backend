@@ -22,10 +22,6 @@ public class LecturerEntity implements Serializable {
     @Column(name = "surname")
     private String surname;
 
-    @Column(name = "active_subscription")
-    private boolean activeSubscription;
-
-
     public LecturerEntity() {
     }
 
@@ -33,7 +29,6 @@ public class LecturerEntity implements Serializable {
         this.email = emailEntity;
         this.name = addLecturerRequest.name;
         this.surname = addLecturerRequest.surname;
-        this.activeSubscription = addLecturerRequest.activeSubscription;
     }
 
     public Integer getId() {
@@ -54,14 +49,6 @@ public class LecturerEntity implements Serializable {
 
     public String getFullName() {
         return name + " " + surname;
-    }
-
-    public boolean isActiveSubscription() {
-        return activeSubscription;
-    }
-
-    public void setActiveSubscription(boolean activeSubscription) {
-        this.activeSubscription = activeSubscription;
     }
 
     public String getName() {

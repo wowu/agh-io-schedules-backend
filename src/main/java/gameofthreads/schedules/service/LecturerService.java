@@ -1,16 +1,18 @@
 package gameofthreads.schedules.service;
 
 import gameofthreads.schedules.dto.request.AddLecturerRequest;
-import gameofthreads.schedules.dto.response.LecturerResponse;
+import gameofthreads.schedules.dto.response.LecturerDetailedResponse;
+import gameofthreads.schedules.dto.response.LecturerMediumResponse;
 import gameofthreads.schedules.dto.response.LecturerResponseList;
+import gameofthreads.schedules.dto.response.LecturerShortResponse;
 import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
+import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.util.Validator;
 import io.vavr.control.Either;
-import io.vavr.control.Try;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,19 +24,32 @@ import java.util.stream.Collectors;
 public class LecturerService {
     private final LecturerRepository lecturerRepository;
     private final EmailRepository emailRepository;
+    private final ScheduleRepository scheduleRepository;
 
-    public LecturerService(LecturerRepository lecturerRepository, EmailRepository emailRepository) {
+    public LecturerService(LecturerRepository lecturerRepository, EmailRepository emailRepository, ScheduleRepository scheduleRepository) {
         this.lecturerRepository = lecturerRepository;
         this.emailRepository = emailRepository;
+        this.scheduleRepository = scheduleRepository;
     }
 
     public LecturerResponseList getAll() {
-        List<LecturerResponse> lecturers = lecturerRepository.findAll()
+        List<LecturerMediumResponse> lecturers = lecturerRepository.findAll()
                 .stream()
-                .map(LecturerResponse::new)
-                .filter(lecturerResponse -> !lecturerResponse.name.equals("ADMIN"))
+                .map(lecturerEntity -> new LecturerMediumResponse(lecturerEntity,
+                        scheduleRepository.fetchWithConferencesAndMeetingsByLecturer(lecturerEntity.getName(), lecturerEntity.getSurname())))
+                .filter(lecturerMediumResponse -> !lecturerMediumResponse.name.equals("ADMIN"))
                 .collect(Collectors.toList());
         return new LecturerResponseList(lecturers);
+    }
+
+    public Either<Object, LecturerDetailedResponse> get(Integer id) {
+        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findById(id);
+        if (lecturerEntity.isEmpty()) {
+            return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
+        }
+
+        return Either.right(new LecturerDetailedResponse(lecturerEntity.get(),
+                scheduleRepository.fetchWithConferencesAndMeetingsByLecturer(lecturerEntity.get().getName(), lecturerEntity.get().getSurname())));
     }
 
     @Transactional
@@ -48,7 +63,7 @@ public class LecturerService {
     }
 
     @Transactional
-    public Either<Object, LecturerResponse> add(AddLecturerRequest lecturerRequest) {
+    public Either<Object, LecturerShortResponse> add(AddLecturerRequest lecturerRequest) {
         if (!Validator.validateEmail(lecturerRequest.email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
@@ -56,7 +71,7 @@ public class LecturerService {
         Optional<EmailEntity> emailEntity = emailRepository.findByEmail(lecturerRequest.email);
         boolean isEmailUnavailable = emailEntity.map(EmailEntity::getLecturer).isPresent();
 
-        if(isEmailUnavailable){
+        if (isEmailUnavailable) {
             return Either.left(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
         }
 
@@ -64,11 +79,11 @@ public class LecturerService {
         LecturerEntity lecturerEntity = new LecturerEntity(lecturerRequest, email);
         lecturerRepository.save(lecturerEntity);
 
-        return Either.right(new LecturerResponse(lecturerEntity));
+        return Either.right(new LecturerShortResponse(lecturerEntity));
     }
 
     @Transactional
-    public Either<Object, LecturerResponse> update(Integer id, AddLecturerRequest lecturerRequest) {
+    public Either<Object, LecturerMediumResponse> update(Integer id, AddLecturerRequest lecturerRequest) {
         if (!Validator.validateEmail(lecturerRequest.email)) {
             return Either.left(ErrorMessage.INCORRECT_EMAIL.asJson());
         }
@@ -91,12 +106,12 @@ public class LecturerService {
             lecturer.setName(lecturerRequest.name);
             lecturer.setSurname(lecturerRequest.surname);
             lecturer.getEmailEntity().setEmail(lecturerRequest.email);
-            lecturer.setActiveSubscription(lecturerRequest.activeSubscription);
             return lecturer;
         }).get();
 
         lecturerRepository.save(lecturerEntity);
-        return Either.right(new LecturerResponse(lecturerEntity));
+        return Either.right(new LecturerMediumResponse(lecturerEntity,
+                scheduleRepository.fetchWithConferencesAndMeetingsByLecturer(lecturerRequest.name, lecturerRequest.surname)));
     }
 
 }

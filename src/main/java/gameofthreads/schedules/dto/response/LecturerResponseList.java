@@ -4,9 +4,9 @@ import java.io.Serializable;
 import java.util.List;
 
 public class LecturerResponseList implements Serializable {
-    public final List<LecturerResponse> lecturers;
+    public final List<LecturerMediumResponse> lecturers;
 
-    public LecturerResponseList(List<LecturerResponse> lecturers) {
+    public LecturerResponseList(List<LecturerMediumResponse> lecturers) {
         this.lecturers = lecturers;
     }
 

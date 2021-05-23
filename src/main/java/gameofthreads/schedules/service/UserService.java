@@ -105,42 +105,23 @@ public class UserService {
         UserEntity userEntity = new UserEntity(password);
         userEntity.setEmail(emailEntity);
         emailEntity.setUser(userEntity);
-        emailEntity.getLecturer().setActiveSubscription(userRequest.activeSubscription);
         emailRepository.save(emailEntity);
 
         return Either.right(new UserResponse(emailEntity));
     }
 
     @Transactional
-    public Either<Object, UserResponse> update(Integer id, String password, Boolean activeSubscription, String email) {
+    public Either<Object, UserResponse> update(Integer id, String password) {
         Optional<UserEntity> userEntity = userRepository.findById(id);
 
         if (userEntity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_USER_ID.asJson());
         }
 
-        if (activeSubscription != null) {
-            userEntity
-                    .map(UserEntity::getEmailEntity)
-                    .map(EmailEntity::getLecturer)
-                    .ifPresent(lecturer -> {
-                        lecturer.setActiveSubscription(activeSubscription);
-                        lecturerRepository.save(lecturer);
-                    });
-        }
-
         if (password != null) {
             UserEntity user = userEntity.get();
             user.setPassword(passwordEncoder.encode(password));
             userRepository.save(user);
-        }
-
-        if(email != null){
-            userEntity.map(UserEntity::getEmailEntity)
-                    .ifPresent(entity -> {
-                        entity.setEmail(email);
-                        emailRepository.save(entity);
-                    });
         }
 
         return Either.right(new UserResponse(Objects.requireNonNull(userEntity.get().getEmailEntity())));
