@@ -31,11 +31,11 @@ public enum ErrorMessage {
     }
 
     public String getText() {
-        return "ERROR: " + text;
+        return "error: " + text;
     }
 
     public String asJson() {
-        return "{ \"ERROR\": \"" + text + "\" }";
+        return "{ \"error\": \"" + text + "\" }";
     }
 
 }
