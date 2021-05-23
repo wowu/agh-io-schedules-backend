@@ -107,16 +107,30 @@ public class ScheduleService {
     }
 
     @Transactional
-    public Pair<?, Boolean> modifySchedule(Integer scheduleId, String name, String description) {
+    public Pair<?, Boolean> modifySchedule(Integer scheduleId, String name, String description, Boolean notifications) {
         try {
-            if (name != null && description != null)
-                scheduleRepository.updateAllMetadata(scheduleId, name, description);
-            else if (name != null)
-                scheduleRepository.updateFilenameMetadata(scheduleId, name);
-            else if (description != null)
-                scheduleRepository.updateDescriptionMetadata(scheduleId, description);
+            Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
+            if (scheduleEntity.isEmpty())
+                return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
 
-            return Pair.of("", Boolean.TRUE);
+            if (name == null)
+                name = scheduleEntity.get().getFileName();
+            else
+                scheduleEntity.get().setFileName(name);
+
+            if (description == null)
+                description = scheduleEntity.get().getDescription();
+            else
+                scheduleEntity.get().setDescription(description);
+
+            if (notifications == null)
+                notifications = scheduleEntity.get().getNotifications();
+            else
+                scheduleEntity.get().setNotifications(notifications);
+
+            scheduleRepository.updateAllMetadata(scheduleId, name, description, notifications);
+
+            return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
         } catch (Exception e) {
             return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
         }
@@ -153,7 +167,7 @@ public class ScheduleService {
 
     public ScheduleEntity getScheduleEntity(Schedule schedule) {
         ScheduleEntity scheduleEntity =
-                new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink(), schedule.getExcelEntity());
+                new ScheduleEntity(schedule.getFileName(), schedule.getPublicLink(), schedule.getExcelEntity(), schedule.getNotifications());
         for (Conference conference : schedule.getConferences()) {
             addConferenceToSchedule(conference, scheduleEntity);
         }

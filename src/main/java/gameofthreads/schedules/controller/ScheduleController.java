@@ -50,8 +50,9 @@ public class ScheduleController {
     @PutMapping(value = "/{scheduleId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> modifyScheduleMetadata(@PathVariable Integer scheduleId,
                                                     @RequestParam(value = "name", required = false) String name,
-                                                    @RequestParam(value = "description", required = false) String description) {
-        Pair<?, Boolean> schedule = scheduleService.modifySchedule(scheduleId, name, description);
+                                                    @RequestParam(value = "description", required = false) String description,
+                                                    @RequestParam(value = "notifications", required = false) Boolean notifications) {
+        Pair<?, Boolean> schedule = scheduleService.modifySchedule(scheduleId, name, description, notifications);
 
         return schedule.getSecond() ?
                 ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :

@@ -25,16 +25,9 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     Set<ScheduleEntity> fetchAllWithConferencesAndMeetings();
 
     @Modifying
-    @Query("UPDATE ScheduleEntity s SET s.description=:description, s.fileName=:fileName where s.id=:scheduleId")
-    void updateAllMetadata(Integer scheduleId, @Param(value = "fileName") String fileName, @Param(value = "description") String description);
-
-    @Modifying
-    @Query("UPDATE ScheduleEntity s SET s.fileName=:fileName where s.id=:scheduleId")
-    void updateFilenameMetadata(Integer scheduleId, @Param(value = "fileName") String fileName);
-
-    @Modifying
-    @Query("UPDATE ScheduleEntity s SET s.description=:description where s.id=:scheduleId")
-    void updateDescriptionMetadata(Integer scheduleId, @Param(value = "description") String description);
+    @Query("UPDATE ScheduleEntity s SET s.description=:description, s.fileName=:fileName, s.notifications=:notifications where s.id=:scheduleId")
+    void updateAllMetadata(Integer scheduleId, @Param(value = "fileName") String fileName, @Param(value = "description") String description,
+                           @Param(value = "notifications") Boolean notifications);
 
     Optional<ScheduleEntity> findByPublicLink(String uuid);
 }

@@ -16,6 +16,7 @@ public class DetailedScheduleResponse implements Serializable {
     public final LocalDateTime firstEventDate;
     public final LocalDateTime lastEventDate;
     public final String publicUUID;
+    public final Boolean notifications;
     public final List<MeetingResponse> events;
 
     public DetailedScheduleResponse(ScheduleEntity scheduleEntity) {
@@ -31,6 +32,7 @@ public class DetailedScheduleResponse implements Serializable {
                 .min(events.stream().map(meetingResponse -> meetingResponse.beginTime).collect(Collectors.toList()));
         this.lastEventDate = Collections
                 .max(events.stream().map(meetingResponse -> meetingResponse.endTime).collect(Collectors.toList()));
+        this.notifications = scheduleEntity.getNotifications();
         this.publicUUID = scheduleEntity.getPublicLink();
     }
 }

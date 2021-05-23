@@ -16,11 +16,13 @@ public class Schedule {
     private final String publicLink;
     private final Set<Conference> conferences;
     private ExcelEntity excelEntity;
+    private Boolean notifications;
 
     public Schedule(String fileName) {
         this.fileName = fileName.split("\\.")[0];
         this.publicLink = generatePublicLink();
         this.conferences = new HashSet<>();
+        this.notifications = Boolean.TRUE;
     }
 
     public static void loadPublicLinks(Set<String> publicLinks) {
@@ -71,6 +73,10 @@ public class Schedule {
 
     public ExcelEntity getExcelEntity() {
         return excelEntity;
+    }
+
+    public Boolean getNotifications() {
+        return notifications;
     }
 
     public void setExcelEntity(ExcelEntity excelEntity) {
