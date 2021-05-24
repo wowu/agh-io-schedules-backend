@@ -20,6 +20,9 @@ public class ScheduleEntity {
     @Column(name = "public_link")
     private String publicLink;
 
+    @Column(name = "notifications")
+    private Boolean notifications;
+
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
     private Set<SubscriptionEntity> subscriptions;
 
@@ -33,12 +36,13 @@ public class ScheduleEntity {
 
     }
 
-    public ScheduleEntity(String fileName, String publicLink, ExcelEntity excelEntity) {
+    public ScheduleEntity(String fileName, String publicLink, ExcelEntity excelEntity, Boolean notifications) {
         this.fileName = fileName.split("\\.")[0];
         this.description = "";
         this.publicLink = publicLink;
         this.conferenceEntities = new HashSet<>();
         this.excelEntity = excelEntity;
+        this.notifications = notifications;
     }
 
     public Integer getId() {
@@ -69,7 +73,23 @@ public class ScheduleEntity {
         return excelEntity;
     }
 
+    public Boolean getNotifications() {
+        return notifications;
+    }
+
     public void setConferenceEntities(Set<ConferenceEntity> conferenceEntities) {
         this.conferenceEntities = conferenceEntities;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setNotifications(Boolean notifications) {
+        this.notifications = notifications;
     }
 }

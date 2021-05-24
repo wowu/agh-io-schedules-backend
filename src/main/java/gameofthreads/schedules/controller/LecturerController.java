@@ -1,7 +1,7 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.request.AddLecturerRequest;
-import gameofthreads.schedules.dto.response.LecturerResponse;
+import gameofthreads.schedules.dto.response.LecturerMediumResponse;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.service.LecturerService;
 import io.vavr.control.Either;
@@ -28,6 +28,15 @@ public class LecturerController {
         return ResponseEntity.ok(lecturerService.getAll());
     }
 
+    @GetMapping(value = {"/{id}"})
+    public ResponseEntity<?> get(@PathVariable Integer id) {
+        return lecturerService.get(id)
+                .fold(error -> {
+                    LOGGER.info(error.toString());
+                    return ResponseEntity.badRequest().body(error);
+                }, success -> ResponseEntity.status(HttpStatus.OK).body(success));
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> add(@ModelAttribute AddLecturerRequest lecturerRequest) {
         return lecturerService.add(lecturerRequest)
@@ -48,7 +57,7 @@ public class LecturerController {
 
     @PutMapping(value = {"/{id}"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> update(@PathVariable Integer id, @ModelAttribute AddLecturerRequest addLecturerRequest) {
-        Try<Either<Object, LecturerResponse>> result = Try.of(() -> lecturerService.update(id, addLecturerRequest));
+        Try<Either<Object, LecturerMediumResponse>> result = Try.of(() -> lecturerService.update(id, addLecturerRequest));
 
         if (result.isFailure()) {
             LOGGER.error(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());

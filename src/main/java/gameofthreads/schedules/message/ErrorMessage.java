@@ -1,28 +1,28 @@
 package gameofthreads.schedules.message;
 
 public enum ErrorMessage {
-    WRONG_REFRESH_TOKEN("Wrong refresh token. Jwt payload does not contain the required data."),
-    WRONG_CREDENTIALS("Wrong username or password."),
-    WRONG_USERNAME("Wrong username."),
-    WRONG_PASSWORD("Wrong password."),
-    WRONG_TOKENS_SUBJECT("Wrong token's subject. User doesn't exist."),
-    WRONG_DOWNLOAD_ID("Wrong excel file id."),
-    WRONG_CONFERENCE_ID("Wrong conference id. Conference doesn't exist."),
-    WRONG_SUBSCRIPTION_ID("Wrong subscription id. Subscription doesn't exist."),
-    INCORRECT_EMAIL("Incorrect email."),
-    WRONG_SCHEDULE_ID("Wrong schedule id. Schedule doesn't exist."),
-    WRONG_UUID("Wrong uuid."),
-    INSUFFICIENT_SCOPE("This request requires higher privileges."),
-    NO_FILES("You have not attached any files."),
-    GENERAL_ERROR("Something did go wrong. Sorry for that!"),
-    NOT_AVAILABLE_EMAIL("This e-mail is not available."),
-    WRONG_LECTURER_ID("Wrong lecturer id. Lecturer doesn't exist"),
-    WRONG_USER_ID("Wrong user id. User doesn't exist"),
-    NO_LECTURER_WITH_EMAIL("There is no lecturer with such email."),
-    WRONG_CONFERENCE_UUID("Wrong conference uuid. Conference doesn't exist."),
-    EXISTING_SUBSCRIPTION("There is a subscription for this schedule with this email."),
-    NO_USER_WITH_EMAIL("There is no user/lecturer with this email."),
-    FORBIDDEN_USER("Viewing another user's subscriptions is forbidden.");
+    WRONG_REFRESH_TOKEN("Niepoprawny token odświeżania. Payload Jwt nie zawiera wymaganych danych."),
+    WRONG_CREDENTIALS("Niepoprawna nazwa użytkownika lub hasło."),
+    WRONG_USERNAME("Niepoprawna nazwa użytkownika."),
+    WRONG_PASSWORD("Niepoprawne hasło."),
+    WRONG_TOKENS_SUBJECT("Niepoprawny token. Użytkownik nie istnieje."),
+    WRONG_DOWNLOAD_ID("Niepoprawny identyfikator pliku excel."),
+    WRONG_CONFERENCE_ID("Niepoprawny identyfikator konferencji. Konferencja nie istnieje."),
+    WRONG_SUBSCRIPTION_ID("Niepoprawny identyfikator subskrypcji. Subskrypcja nie istnieje."),
+    INCORRECT_EMAIL("Niepoprawny adres email."),
+    WRONG_SCHEDULE_ID("Niepoprawny identyfikator harmonogramu. Harmonogram nie istnieje."),
+    WRONG_UUID("Niepoprawny UUID."),
+    INSUFFICIENT_SCOPE("To żądanie wymaga większych uprawnień."),
+    NO_FILES("Nie dołączono żadnych plików."),
+    GENERAL_ERROR("Coś poszło nie tak. Przepraszamy!"),
+    NOT_AVAILABLE_EMAIL("Ten adres email nie jest dostępny."),
+    WRONG_LECTURER_ID("Niepoprawny identyfikator wykładowcy. Wykładowca nie istnieje."),
+    WRONG_USER_ID("Niepoprawny identyfikator użytkownika. Użytkownik nie istnieje."),
+    NO_LECTURER_WITH_EMAIL("Nie ma wykładowcy o takim adresie email."),
+    WRONG_CONFERENCE_UUID("Niepoprawny UUID konferencji. Konferencja nie istnieje."),
+    EXISTING_SUBSCRIPTION("Nie ma subskrypcji z takim adresem email dla tego harmonogramu."),
+    NO_USER_WITH_EMAIL("Nie ma wykładowcy/użytkownika o takim adresie email."),
+    FORBIDDEN_USER("Wyświetlanie subskrypcji innych użytkowników jest niedozwolone.");
 
     private final String text;
 
@@ -31,11 +31,11 @@ public enum ErrorMessage {
     }
 
     public String getText() {
-        return "ERROR: " + text;
+        return "error: " + text;
     }
 
     public String asJson() {
-        return "{ \"ERROR\": \"" + text + "\" }";
+        return "{ \"error\": \"" + text + "\" }";
     }
 
 }

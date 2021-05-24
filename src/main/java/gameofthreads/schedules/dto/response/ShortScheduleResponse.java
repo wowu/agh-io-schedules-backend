@@ -16,6 +16,7 @@ public class ShortScheduleResponse implements Serializable {
     public final Integer eventCount;
     public final LocalDateTime firstEventDate;
     public final LocalDateTime lastEventDate;
+    public final Boolean notifications;
     @JsonIgnore
     public final List<MeetingResponse> events;
 
@@ -28,6 +29,7 @@ public class ShortScheduleResponse implements Serializable {
                 .collect(Collectors.toList());
         this.description = scheduleEntity.getDescription();
         this.eventCount = events.size();
+        this.notifications = scheduleEntity.getNotifications();
         this.firstEventDate = Collections
                 .min(events.stream().map(meetingResponse -> meetingResponse.beginTime).collect(Collectors.toList()));
         this.lastEventDate = Collections
