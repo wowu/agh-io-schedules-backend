@@ -113,22 +113,18 @@ public class ScheduleService {
             if (scheduleEntity.isEmpty())
                 return Pair.of(ErrorMessage.GENERAL_ERROR.asJson(), Boolean.FALSE);
 
-            if (name == null)
-                name = scheduleEntity.get().getFileName();
-            else
+            if (name != null) {
                 scheduleEntity.get().setFileName(name);
-
-            if (description == null)
-                description = scheduleEntity.get().getDescription();
-            else
+            }
+            if (description != null) {
                 scheduleEntity.get().setDescription(description);
+            }
 
-            if (notifications == null)
-                notifications = scheduleEntity.get().getNotifications();
-            else
+            if (notifications != null) {
                 scheduleEntity.get().setNotifications(notifications);
+            }
 
-            scheduleRepository.updateAllMetadata(scheduleId, name, description, notifications);
+            scheduleRepository.save(scheduleEntity.get());
 
             return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
         } catch (Exception e) {

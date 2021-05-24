@@ -30,10 +30,5 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities")
     Set<ScheduleEntity> fetchAllWithConferencesAndMeetings();
 
-    @Modifying
-    @Query("UPDATE ScheduleEntity s SET s.description=:description, s.fileName=:fileName, s.notifications=:notifications where s.id=:scheduleId")
-    void updateAllMetadata(Integer scheduleId, @Param(value = "fileName") String fileName, @Param(value = "description") String description,
-                           @Param(value = "notifications") Boolean notifications);
-
     Optional<ScheduleEntity> findByPublicLink(String uuid);
 }

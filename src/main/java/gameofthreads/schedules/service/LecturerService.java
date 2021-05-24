@@ -7,6 +7,7 @@ import gameofthreads.schedules.dto.response.LecturerResponseList;
 import gameofthreads.schedules.dto.response.LecturerShortResponse;
 import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
+import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
@@ -16,6 +17,7 @@ import io.vavr.control.Either;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,14 +34,17 @@ public class LecturerService {
         this.scheduleRepository = scheduleRepository;
     }
 
+    // TODO: one query instead of N
     public LecturerResponseList getAll() {
-        List<LecturerMediumResponse> lecturers = lecturerRepository.findAll()
+        List<LecturerEntity> lecturers = lecturerRepository.findAll();
+        HashMap<LecturerEntity, List<ScheduleEntity>> lecturerSchedules = new HashMap<>();
+        List<LecturerMediumResponse> lecturerResponses = lecturers
                 .stream()
                 .map(lecturerEntity -> new LecturerMediumResponse(lecturerEntity,
                         scheduleRepository.fetchWithConferencesAndMeetingsByLecturer(lecturerEntity.getName(), lecturerEntity.getSurname())))
                 .filter(lecturerMediumResponse -> !lecturerMediumResponse.name.equals("ADMIN"))
                 .collect(Collectors.toList());
-        return new LecturerResponseList(lecturers);
+        return new LecturerResponseList(lecturerResponses);
     }
 
     public Either<Object, LecturerDetailedResponse> get(Integer id) {
