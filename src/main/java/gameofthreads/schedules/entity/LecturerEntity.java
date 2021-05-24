@@ -31,12 +31,18 @@ public class LecturerEntity implements Serializable {
         this.surname = addLecturerRequest.surname;
     }
 
+    public LecturerEntity(String name, String surname) {
+        this.name = name;
+        this.surname = surname;
+        this.email = null;
+    }
+
     public Integer getId() {
         return id;
     }
 
     public String getEmail() {
-        return email.getEmail();
+        return (email == null) ? "" : email.getEmail();
     }
 
     public void setEmail(EmailEntity email) {
@@ -67,4 +73,25 @@ public class LecturerEntity implements Serializable {
         this.surname = surname;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((surname == null) ? 0 : surname.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final LecturerEntity other = (LecturerEntity) obj;
+
+        return name.equals(other.name) && surname.equals(other.surname);
+    }
 }
