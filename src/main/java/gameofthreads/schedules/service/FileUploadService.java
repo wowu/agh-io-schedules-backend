@@ -6,11 +6,11 @@ import gameofthreads.schedules.domain.Schedule;
 import gameofthreads.schedules.dto.response.DetailedScheduleResponse;
 import gameofthreads.schedules.dto.response.UploadConflictResponse;
 import gameofthreads.schedules.dto.response.UploadSuccessfulResponse;
-import gameofthreads.schedules.entity.ExcelEntity;
-import gameofthreads.schedules.entity.ScheduleEntity;
+import gameofthreads.schedules.entity.*;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.ConferenceRepository;
 import gameofthreads.schedules.repository.ExcelRepository;
+import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -18,10 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,12 +26,26 @@ public class FileUploadService {
     private final ExcelRepository excelRepository;
     private final ConferenceRepository conferenceRepository;
     private final ScheduleRepository scheduleRepository;
+    private final LecturerRepository lecturerRepository;
     private List<ExcelEntity> approvedExcelEntities = new ArrayList<>();
 
-    public FileUploadService(ExcelRepository excelRepository, ConferenceRepository conferenceRepository, ScheduleRepository scheduleRepository) {
+    public FileUploadService(ExcelRepository excelRepository, ConferenceRepository conferenceRepository, ScheduleRepository scheduleRepository, LecturerRepository lecturerRepository) {
         this.excelRepository = excelRepository;
         this.conferenceRepository = conferenceRepository;
         this.scheduleRepository = scheduleRepository;
+        this.lecturerRepository = lecturerRepository;
+    }
+
+    private Set<LecturerEntity> getLecturers(ScheduleEntity scheduleEntity, List<LecturerEntity> lecturersInDB) {
+        Set<LecturerEntity> lecturers = new HashSet<>();
+        for (ConferenceEntity conference : scheduleEntity.getConferences()) {
+            for (MeetingEntity meeting : conference.getMeetingEntities()) {
+                LecturerEntity lecturer = new LecturerEntity(meeting.getLecturerName(), meeting.getLecturerSurname());
+                if (!lecturersInDB.contains(lecturer))
+                    lecturers.add(lecturer);
+            }
+        }
+        return lecturers;
     }
 
     public CollisionResponse checkCollisions(String fileName, ExcelEntity excelEntity, Integer updateScheduleId) throws IOException {
@@ -83,6 +94,13 @@ public class FileUploadService {
             return Pair.of(new UploadConflictResponse(schedulesWithConflicts), Boolean.FALSE);
         }
 
+        List<LecturerEntity> lecturersInDB = lecturerRepository.findAll();
+        List<LecturerEntity> lecturers = new ArrayList<>();
+        for (ScheduleEntity schedule : schedules) {
+            lecturers.addAll(getLecturers(schedule, lecturersInDB));
+        }
+
+        lecturerRepository.saveAll(lecturers);
         scheduleRepository.saveAll(schedules);
 
         return Pair.of(new UploadSuccessfulResponse(schedules.stream()
@@ -109,6 +127,7 @@ public class FileUploadService {
             oldScheduleEntity.getExcelEntity().setExcelName(excelEntity.getExcelName());
             oldScheduleEntity.getExcelEntity().setData(excelEntity.getData());
 
+            lecturerRepository.saveAll(getLecturers(oldScheduleEntity, lecturerRepository.findAll()));
             scheduleRepository.save(oldScheduleEntity);
             return Pair.of(new DetailedScheduleResponse(oldScheduleEntity), Boolean.TRUE);
         } else {
