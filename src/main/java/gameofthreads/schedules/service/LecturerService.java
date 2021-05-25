@@ -14,6 +14,7 @@ import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.util.Validator;
 import io.vavr.control.Either;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +50,21 @@ public class LecturerService {
 
     public Either<Object, LecturerDetailedResponse> get(Integer id) {
         Optional<LecturerEntity> lecturerEntity = lecturerRepository.findById(id);
+        if (lecturerEntity.isEmpty()) {
+            return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
+        }
+
+        return Either.right(new LecturerDetailedResponse(lecturerEntity.get(),
+                scheduleRepository.fetchWithConferencesAndMeetingsByLecturer(lecturerEntity.get().getName(), lecturerEntity.get().getSurname())));
+    }
+
+    public Either<Object, LecturerDetailedResponse> getMySchedules(JwtAuthenticationToken token) {
+        if (!token.getTokenAttributes().get("scope").equals("LECTURER"))
+            return Either.left(ErrorMessage.LECTURER_ONLY.asJson());
+
+        String lecturerEmail = (String) token.getTokenAttributes().get("sub");
+
+        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email(lecturerEmail);
         if (lecturerEntity.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
