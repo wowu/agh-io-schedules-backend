@@ -22,7 +22,8 @@ public enum ErrorMessage {
     WRONG_CONFERENCE_UUID("Niepoprawny UUID konferencji. Konferencja nie istnieje."),
     EXISTING_SUBSCRIPTION("Nie ma subskrypcji z takim adresem email dla tego harmonogramu."),
     NO_USER_WITH_EMAIL("Nie ma wykładowcy/użytkownika o takim adresie email."),
-    FORBIDDEN_USER("Wyświetlanie subskrypcji innych użytkowników jest niedozwolone.");
+    FORBIDDEN_USER("Wyświetlanie subskrypcji innych użytkowników jest niedozwolone."),
+    LECTURER_ONLY("Ta funkcjonalność dostępna jest tylko dla prowadzących.");
 
     private final String text;
 
