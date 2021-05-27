@@ -25,8 +25,7 @@ public class NotificationEntity {
     public NotificationEntity() {
     }
 
-    public NotificationEntity(Integer id, TimeUnit unit, Integer value, UserEntity user) {
-        this.id = id;
+    public NotificationEntity(TimeUnit unit, Integer value, UserEntity user) {
         this.unit = unit;
         this.value = value;
         this.user = user;
