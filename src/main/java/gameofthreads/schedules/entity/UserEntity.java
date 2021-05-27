@@ -1,6 +1,7 @@
 package gameofthreads.schedules.entity;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "my_user")
@@ -19,6 +20,9 @@ public class UserEntity {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    private Set<NotificationEntity> notifications;
 
     public UserEntity() {
     }
