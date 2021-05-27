@@ -1,6 +1,7 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.service.LecturerService;
+import gameofthreads.schedules.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class MeController {
     private final static Logger LOGGER = LoggerFactory.getLogger(LoggerFactory.class);
     private final LecturerService lecturerService;
+    private final NotificationService notificationService;
 
-    public MeController(LecturerService lecturerService) {
+    public MeController(LecturerService lecturerService, NotificationService notificationService) {
 
         this.lecturerService = lecturerService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping("/schedules")
@@ -30,4 +33,10 @@ public class MeController {
                     return ResponseEntity.badRequest().body(error);
                 }, success -> ResponseEntity.status(HttpStatus.OK).body(success));
     }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<?> getMyNotifications(Authentication token) {
+        return ResponseEntity.ok(notificationService.getMyNotifications((JwtAuthenticationToken) token));
+    }
+
 }
