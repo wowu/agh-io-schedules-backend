@@ -62,11 +62,14 @@ public class NotificationService {
     @Transactional
     public AddMyNotificationsRequest addMyNotifications(JwtAuthenticationToken token, AddMyNotificationsRequest notificationsList){
         String lecturerEmail = (String) token.getTokenAttributes().get("sub");
-        UserEntity lecturer = userRepository.findByEmail_Email(lecturerEmail).get();
+
+        UserEntity lecturer = userRepository.findByEmail_Email(lecturerEmail).orElseThrow();
+        lecturer.setGlobalNotifications(notificationsList.global);
+        final UserEntity updatedLecturer = userRepository.save(lecturer);
 
         List<NotificationEntity> notificationsToSave = notificationsList.notifications
                 .stream()
-                .map(notification -> new NotificationEntity(TimeUnit.getType(notification.unit), notification.value, lecturer))
+                .map(notification -> new NotificationEntity(TimeUnit.getType(notification.unit), notification.value, updatedLecturer))
                 .collect(Collectors.toList());
 
         notificationRepository.saveAll(notificationsToSave);

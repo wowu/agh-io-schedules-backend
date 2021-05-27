@@ -21,6 +21,9 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(name = "global_notifications")
+    private boolean globalNotifications = true;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     private Set<NotificationEntity> notifications;
 
@@ -54,5 +57,13 @@ public class UserEntity {
 
     public EmailEntity getEmailEntity() {
         return email;
+    }
+
+    public boolean isGlobalNotifications() {
+        return globalNotifications;
+    }
+
+    public void setGlobalNotifications(boolean globalNotifications) {
+        this.globalNotifications = globalNotifications;
     }
 }
