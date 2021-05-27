@@ -1,21 +1,18 @@
 package gameofthreads.schedules.service;
 
+import gameofthreads.schedules.dto.request.AddMyNotificationsRequest;
 import gameofthreads.schedules.dto.response.NotificationResponse;
 import gameofthreads.schedules.dto.response.NotificationResponseList;
-import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.entity.NotificationEntity;
 import gameofthreads.schedules.entity.TimeUnit;
 import gameofthreads.schedules.entity.UserEntity;
-import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.NotificationRepository;
 import gameofthreads.schedules.repository.UserRepository;
-import io.vavr.control.Either;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,6 +57,20 @@ public class NotificationService {
                 .collect(Collectors.toList());
 
         return new NotificationResponseList(notifications);
+    }
+
+    @Transactional
+    public AddMyNotificationsRequest addMyNotifications(JwtAuthenticationToken token, AddMyNotificationsRequest notificationsList){
+        String lecturerEmail = (String) token.getTokenAttributes().get("sub");
+        UserEntity lecturer = userRepository.findByEmail_Email(lecturerEmail).get();
+
+        List<NotificationEntity> notificationsToSave = notificationsList.notifications
+                .stream()
+                .map(notification -> new NotificationEntity(TimeUnit.getType(notification.unit), notification.value, lecturer))
+                .collect(Collectors.toList());
+
+        notificationRepository.saveAll(notificationsToSave);
+        return notificationsList;
     }
 
 }
