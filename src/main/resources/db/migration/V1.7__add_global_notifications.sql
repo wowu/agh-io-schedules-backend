@@ -1,0 +1,1 @@
+ALTER TABLE my_user ADD COLUMN global_notifications BOOLEAN NOT NULL DEFAULT true;

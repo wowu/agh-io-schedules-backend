@@ -1,6 +1,7 @@
 package gameofthreads.schedules.entity;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Entity
 @Table(name = "my_user")
@@ -19,6 +20,12 @@ public class UserEntity {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @Column(name = "global_notifications")
+    private boolean globalNotifications = true;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    private Set<NotificationEntity> notifications;
 
     public UserEntity() {
     }
@@ -50,5 +57,13 @@ public class UserEntity {
 
     public EmailEntity getEmailEntity() {
         return email;
+    }
+
+    public boolean isGlobalNotifications() {
+        return globalNotifications;
+    }
+
+    public void setGlobalNotifications(boolean globalNotifications) {
+        this.globalNotifications = globalNotifications;
     }
 }
