@@ -2,14 +2,11 @@ package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.response.NotificationResponseList;
 import gameofthreads.schedules.service.NotificationService;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController("api/notifications")
+@RestController
+@RequestMapping("api/notifications")
 public class NotificationController {
     private final NotificationService notificationService;
 
@@ -22,9 +19,9 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getGlobalNotifications());
     }
 
-    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping()
     public ResponseEntity<NotificationResponseList> addGlobalNotifications(
-            @ModelAttribute NotificationResponseList notifications){
+            @RequestBody NotificationResponseList notifications){
 
         return ResponseEntity.ok(notificationService.addGlobalNotifications(notifications));
     }

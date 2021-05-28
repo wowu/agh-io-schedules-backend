@@ -44,6 +44,8 @@ public class NotificationService {
                 .map(notification -> new NotificationEntity(TimeUnit.getType(notification.unit), notification.value, admin))
                 .collect(Collectors.toList());
 
+        //TODO : update zamiast kasowania i wstawiania
+        notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(admin.getEmailEntity().getEmail()));
         notificationRepository.saveAll(notificationsToSave);
         return notificationsList;
     }
@@ -64,7 +66,7 @@ public class NotificationService {
         String lecturerEmail = (String) token.getTokenAttributes().get("sub");
 
         UserEntity lecturer = userRepository.findByEmail_Email(lecturerEmail).orElseThrow();
-        lecturer.setGlobalNotifications(notificationsList.global);
+        lecturer.setGlobalNotifications(notificationsList.isGlobal());
         final UserEntity updatedLecturer = userRepository.save(lecturer);
 
         List<NotificationEntity> notificationsToSave = notificationsList.notifications
@@ -72,6 +74,8 @@ public class NotificationService {
                 .map(notification -> new NotificationEntity(TimeUnit.getType(notification.unit), notification.value, updatedLecturer))
                 .collect(Collectors.toList());
 
+        //TODO : update zamiast kasowania i wstawiania
+        notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(lecturerEmail));
         notificationRepository.saveAll(notificationsToSave);
         return notificationsList;
     }

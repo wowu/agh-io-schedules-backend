@@ -39,9 +39,9 @@ public class MeController {
         return ResponseEntity.ok(notificationService.getMyNotifications((JwtAuthenticationToken) token));
     }
 
-    @PutMapping(value = "/notifications", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/notifications")
     public ResponseEntity<AddMyNotificationsRequest> addGlobalNotifications(
-            Authentication token, @ModelAttribute AddMyNotificationsRequest notifications) {
+            Authentication token, @RequestBody AddMyNotificationsRequest notifications) {
 
         return ResponseEntity.ok(notificationService.addMyNotifications((JwtAuthenticationToken) token, notifications));
     }
