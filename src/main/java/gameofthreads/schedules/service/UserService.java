@@ -5,6 +5,7 @@ import gameofthreads.schedules.dto.response.UserResponse;
 import gameofthreads.schedules.dto.response.UserResponseList;
 import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
+import gameofthreads.schedules.entity.Role;
 import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.EmailRepository;
@@ -28,15 +29,11 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailRepository emailRepository;
     private final UserRepository userRepository;
-    private final LecturerRepository lecturerRepository;
 
-    public UserService(PasswordEncoder passwordEncoder, EmailRepository emailRepository,
-                       UserRepository userRepository, LecturerRepository lecturerRepository) {
-
+    public UserService(PasswordEncoder passwordEncoder, EmailRepository emailRepository, UserRepository userRepository) {
         this.passwordEncoder = passwordEncoder;
         this.emailRepository = emailRepository;
         this.userRepository = userRepository;
-        this.lecturerRepository = lecturerRepository;
     }
 
     private boolean isUserARole(JwtAuthenticationToken jwtToken, String role) {
@@ -45,10 +42,9 @@ public class UserService {
 
     @Transactional
     public UserResponseList getAll() {
-        List<UserResponse> users = lecturerRepository.fetchWithUser()
+        List<UserResponse> users = userRepository.findAll()
                 .stream()
-                .map(LecturerEntity::getEmailEntity)
-                .filter(emailEntity -> emailEntity.getUser() != null)
+                .map(UserEntity::getEmailEntity)
                 .map(UserResponse::new)
                 .collect(Collectors.toList());
 
@@ -58,26 +54,18 @@ public class UserService {
     @Transactional
     public Pair<HttpStatus, ?> get(Integer id, JwtAuthenticationToken jwtToken) {
         Optional<UserEntity> userEntity = userRepository.findById(id);
-        Optional<LecturerEntity> lecturerEntity = lecturerRepository.findByEmail_Email((String) jwtToken.getTokenAttributes().get("sub"));
+        String tokenOwnerId = (String) jwtToken.getTokenAttributes().get("userId");
+        Integer tokenOwnerIdAsInt = Integer.parseInt(tokenOwnerId);
+
+        if (isUserARole(jwtToken, Role.LECTURER.name()) && !tokenOwnerIdAsInt.equals(id)) {
+            return Pair.of(HttpStatus.FORBIDDEN, ErrorMessage.FORBIDDEN_USER.asJson());
+        }
 
         if (userEntity.isEmpty()) {
             return Pair.of(HttpStatus.BAD_REQUEST, ErrorMessage.WRONG_USER_ID.asJson());
         }
 
-        EmailEntity emailEntity = userEntity.get().getEmailEntity();
-
-        if (emailEntity.getUser() == null) {
-            return Pair.of(HttpStatus.BAD_REQUEST, ErrorMessage.NO_USER_WITH_EMAIL.asJson());
-        }
-
-        if (isUserARole(jwtToken, "LECTURER") && lecturerEntity.isPresent() &&
-                lecturerEntity.stream()
-                        .map(LecturerEntity::getEmailEntity)
-                        .map(EmailEntity::getEmail).noneMatch(s -> s.equals(emailEntity.getEmail()))) {
-            return Pair.of(HttpStatus.FORBIDDEN, ErrorMessage.FORBIDDEN_USER.asJson());
-        }
-
-        return Pair.of(HttpStatus.OK, new UserResponse(emailEntity));
+        return Pair.of(HttpStatus.OK, userEntity.get().buildDto());
     }
 
     @Transactional
