@@ -23,7 +23,7 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities WHERE s.publicLink=:uuid")
     Optional<ScheduleEntity> fetchWithConferencesAndMeetingsByUuid(String uuid);
 
-    @Query("SELECT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities as m " +
+    @Query("SELECT DISTINCT s FROM ScheduleEntity s LEFT JOIN FETCH s.conferenceEntities as c LEFT JOIN FETCH c.meetingEntities as m " +
             "WHERE m.lecturerName=:lecturerName and m.lecturerSurname=:lecturerSurname")
     List<ScheduleEntity> fetchWithConferencesAndMeetingsByLecturer(String lecturerName, String lecturerSurname);
 
