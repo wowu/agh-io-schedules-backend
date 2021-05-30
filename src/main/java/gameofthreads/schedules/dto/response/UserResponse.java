@@ -13,4 +13,9 @@ public class UserResponse implements Serializable {
         this.email = emailEntity.getEmail();
     }
 
+    public UserResponse(Integer id, String email) {
+        this.id = id;
+        this.email = email;
+    }
+
 }

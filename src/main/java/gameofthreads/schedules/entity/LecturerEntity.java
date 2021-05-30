@@ -94,4 +94,13 @@ public class LecturerEntity implements Serializable {
 
         return name.equals(other.name) && surname.equals(other.surname);
     }
+
+    public void updateEmail(String email){
+        if(getEmailEntity() == null){
+            this.email = new EmailEntity(email);
+        }else{
+            this.email.setEmail(email);
+        }
+    }
+
 }

@@ -14,14 +14,12 @@ public class LecturerMediumResponse implements Serializable {
     public final String email;
     public final Integer eventsCount;
 
-    public LecturerMediumResponse(LecturerEntity lecturerEntity, List<ScheduleEntity> schedules) {
+    public LecturerMediumResponse(LecturerEntity lecturerEntity, long eventsCount) {
         this.id = lecturerEntity.getId();
         this.name = lecturerEntity.getName();
         this.surname = lecturerEntity.getSurname();
         this.email = lecturerEntity.getEmail();
-        this.eventsCount = (int) schedules.stream()
-                .map(scheduleEntity -> scheduleEntity.getConferences().stream().
-                        flatMap(conferenceEntity -> conferenceEntity.getMeetingEntities().stream())
-                        .collect(Collectors.toList())).count();
+        this.eventsCount = Math.toIntExact(eventsCount);
     }
+
 }

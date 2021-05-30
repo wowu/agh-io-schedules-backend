@@ -1,5 +1,7 @@
 package gameofthreads.schedules.entity;
 
+import gameofthreads.schedules.dto.response.UserResponse;
+
 import javax.persistence.*;
 import java.util.Set;
 
@@ -66,4 +68,9 @@ public class UserEntity {
     public void setGlobalNotifications(boolean globalNotifications) {
         this.globalNotifications = globalNotifications;
     }
+
+    public UserResponse buildDto(){
+        return new UserResponse(id, email.getEmail());
+    }
+
 }

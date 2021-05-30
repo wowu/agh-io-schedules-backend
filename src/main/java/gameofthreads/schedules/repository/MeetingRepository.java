@@ -12,6 +12,7 @@ import java.util.Set;
 @Repository
 public interface MeetingRepository extends JpaRepository<MeetingEntity, Integer> {
     Long countMeetingEntitiesByConference(ConferenceEntity conference);
+    Long countMeetingEntityByLecturerSurnameAndAndLecturerName(String surname, String name);
 
     @Query("SELECT m FROM MeetingEntity AS m WHERE m.dateStart BETWEEN :start AND :end")
     Set<MeetingEntity> findTomorrowsMeetings(LocalDateTime start, LocalDateTime end);

@@ -11,9 +11,12 @@ import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
+import gameofthreads.schedules.repository.MeetingRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.util.Validator;
 import io.vavr.control.Either;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,21 +31,30 @@ public class LecturerService {
     private final LecturerRepository lecturerRepository;
     private final EmailRepository emailRepository;
     private final ScheduleRepository scheduleRepository;
+    private final MeetingRepository meetingRepository;
 
-    public LecturerService(LecturerRepository lecturerRepository, EmailRepository emailRepository, ScheduleRepository scheduleRepository) {
+    public LecturerService(LecturerRepository lecturerRepository, EmailRepository emailRepository,
+                           ScheduleRepository scheduleRepository, MeetingRepository meetingRepository) {
         this.lecturerRepository = lecturerRepository;
         this.emailRepository = emailRepository;
         this.scheduleRepository = scheduleRepository;
+        this.meetingRepository = meetingRepository;
     }
 
     // TODO: one query instead of N
     public LecturerResponseList getAll() {
         List<LecturerEntity> lecturers = lecturerRepository.findAll();
-        HashMap<LecturerEntity, List<ScheduleEntity>> lecturerSchedules = new HashMap<>();
+
         List<LecturerMediumResponse> lecturerResponses = lecturers
                 .stream()
-                .map(lecturerEntity -> new LecturerMediumResponse(lecturerEntity,
-                        scheduleRepository.fetchWithConferencesAndMeetingsByLecturer(lecturerEntity.getName(), lecturerEntity.getSurname())))
+                .map(lecturerEntity ->
+                        new LecturerMediumResponse(
+                                lecturerEntity,
+                                meetingRepository.countMeetingEntityByLecturerSurnameAndAndLecturerName(
+                                        lecturerEntity.getSurname(),
+                                        lecturerEntity.getName()
+                                ))
+                )
                 .filter(lecturerMediumResponse -> !lecturerMediumResponse.name.equals("ADMIN"))
                 .collect(Collectors.toList());
         return new LecturerResponseList(lecturerResponses);
@@ -126,13 +138,16 @@ public class LecturerService {
         LecturerEntity lecturerEntity = entity.map(lecturer -> {
             lecturer.setName(lecturerRequest.name);
             lecturer.setSurname(lecturerRequest.surname);
-            lecturer.getEmailEntity().setEmail(lecturerRequest.email);
+            lecturer.updateEmail(lecturerRequest.email);
             return lecturer;
         }).get();
 
         lecturerRepository.save(lecturerEntity);
-        return Either.right(new LecturerMediumResponse(lecturerEntity,
-                scheduleRepository.fetchWithConferencesAndMeetingsByLecturer(lecturerRequest.name, lecturerRequest.surname)));
+
+        long eventsCount = meetingRepository.countMeetingEntityByLecturerSurnameAndAndLecturerName(
+                lecturerRequest.surname, lecturerRequest.name);
+
+        return Either.right(new LecturerMediumResponse(lecturerEntity, eventsCount));
     }
 
 }
