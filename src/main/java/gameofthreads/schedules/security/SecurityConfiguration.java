@@ -34,7 +34,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                                 .antMatchers(HttpMethod.PUT, "/api/users/{id}").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
                                 .antMatchers(HttpMethod.GET, "/api/users/{id}").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
                                 .antMatchers("/api/users/*").hasAuthority("SCOPE_ADMIN")
-                                .antMatchers("/api/notifications").hasAuthority("SCOPE_ADMIN")
+                                .antMatchers("/api/notifications").hasAnyAuthority("SCOPE_ADMIN", "SCOPE_LECTURER")
                                 .antMatchers("/api/me/notifications").hasAuthority("SCOPE_LECTURER")
                                 .antMatchers("/api/public/**").permitAll()
                                 .anyRequest().authenticated()

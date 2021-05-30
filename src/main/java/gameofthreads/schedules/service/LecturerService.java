@@ -7,7 +7,6 @@ import gameofthreads.schedules.dto.response.LecturerResponseList;
 import gameofthreads.schedules.dto.response.LecturerShortResponse;
 import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.LecturerEntity;
-import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.message.ErrorMessage;
 import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.LecturerRepository;
@@ -15,13 +14,10 @@ import gameofthreads.schedules.repository.MeetingRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.util.Validator;
 import io.vavr.control.Either;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -91,7 +87,12 @@ public class LecturerService {
         if (lecturer.isEmpty()) {
             return Either.left(ErrorMessage.WRONG_LECTURER_ID.asJson());
         }
-        emailRepository.deleteById(lecturer.get().getEmailEntity().getId());
+
+        if (lecturer.get().getEmailEntity() != null)
+            emailRepository.deleteById(lecturer.get().getEmailEntity().getId());
+        else
+            lecturerRepository.delete(lecturer.get());
+
         return Either.right(true);
     }
 
