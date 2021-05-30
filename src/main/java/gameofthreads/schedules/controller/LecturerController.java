@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+
 @RestController
 @RequestMapping("api/lecturers")
 public class LecturerController {
@@ -60,6 +62,7 @@ public class LecturerController {
         Try<Either<Object, LecturerMediumResponse>> result = Try.of(() -> lecturerService.update(id, addLecturerRequest));
 
         if (result.isFailure()) {
+            LOGGER.info(Arrays.toString(result.getCause().getStackTrace()));
             LOGGER.error(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
             return ResponseEntity.badRequest().body(ErrorMessage.NOT_AVAILABLE_EMAIL.asJson());
         }
