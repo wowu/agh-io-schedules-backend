@@ -50,6 +50,7 @@ public class Parser {
 
     public Optional<Schedule> parse() throws FileNotFoundException {
         Schedule schedule = new Schedule(filePath);
+        int i = 1;
         try {
             Workbook workbook = new XSSFWorkbook(new ByteArrayInputStream(data));
             Sheet firstSheet = workbook.getSheetAt(0);
@@ -84,7 +85,7 @@ public class Parser {
                 type = cellIterator.next().getStringCellValue();
                 lengthInHours = cellIterator.next().getNumericCellValue();
                 format = cellIterator.next().getStringCellValue();
-                room = cellIterator.next().getStringCellValue();
+                room = cellIterator.next().toString();
 
                 LocalDateTime meetingStartTime = dateStart
                         .withHour(Integer.parseInt(times.split("-")[0].split("\\.")[0]))

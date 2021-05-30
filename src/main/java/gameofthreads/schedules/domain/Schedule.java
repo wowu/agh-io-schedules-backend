@@ -16,7 +16,7 @@ public class Schedule {
     private final String publicLink;
     private final Set<Conference> conferences;
     private ExcelEntity excelEntity;
-    private Boolean notifications;
+    private final Boolean notifications;
 
     public Schedule(String fileName) {
         this.fileName = fileName.split("\\.")[0];
