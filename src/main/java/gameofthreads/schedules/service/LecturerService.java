@@ -138,7 +138,7 @@ public class LecturerService {
         LecturerEntity lecturerEntity = entity.map(lecturer -> {
             lecturer.setName(lecturerRequest.name);
             lecturer.setSurname(lecturerRequest.surname);
-            lecturer.getEmailEntity().setEmail(lecturerRequest.email);
+            lecturer.updateEmail(lecturerRequest.email);
             return lecturer;
         }).get();
 
