@@ -51,7 +51,7 @@ public class OAuth2EntryPoint implements AuthenticationEntryPoint {
             }
         }
 
-        String message = "{ \"ERROR\": \"" + errorMessage + "\" }";
+        String message = "{ \"error\": \"" + errorMessage + "\" }";
 
         String wwwAuthenticate = computeWWWAuthenticateHeaderValue(parameters);
         response.addHeader("WWW-Authenticate", wwwAuthenticate);
