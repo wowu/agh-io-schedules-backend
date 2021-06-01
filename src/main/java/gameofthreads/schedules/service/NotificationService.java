@@ -14,9 +14,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +27,7 @@ public class NotificationService {
         this.userRepository = userRepository;
     }
 
-    public NotificationResponseList getGlobalNotifications(){
+    public NotificationResponseList getGlobalNotifications() {
         List<NotificationResponse> notifications = notificationRepository.findAll()
                 .stream()
                 .filter(NotificationEntity::isGlobal)
@@ -57,12 +55,13 @@ public class NotificationService {
         return new NotificationResponseList(withoutDuplicates);
     }
 
-    public Either<Object, MyNotificationsDto> getMyNotifications(JwtAuthenticationToken token){
+    public Either<Object, MyNotificationsDto> getMyNotifications(JwtAuthenticationToken token) {
         String lecturerEmail = (String) token.getTokenAttributes().get("sub");
 
         List<NotificationResponse> notifications = notificationRepository.findByUser_Email_Email(lecturerEmail)
                 .stream()
                 .map(NotificationEntity::buildResponse)
+                .sorted()
                 .collect(Collectors.toList());
 
         return userRepository.findByEmail_Email(lecturerEmail)
@@ -72,7 +71,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public MyNotificationsDto addMyNotifications(JwtAuthenticationToken token, MyNotificationsDto notificationsList){
+    public MyNotificationsDto addMyNotifications(JwtAuthenticationToken token, MyNotificationsDto notificationsList) {
         String lecturerEmail = (String) token.getTokenAttributes().get("sub");
 
         UserEntity lecturer = userRepository.findByEmail_Email(lecturerEmail).orElseThrow();
@@ -93,7 +92,7 @@ public class NotificationService {
         return new MyNotificationsDto(notificationsList.isGlobal(), withoutDuplicates);
     }
 
-    public List<NotificationResponse> removeDuplicates(List<NotificationResponse> notificationResponses){
+    public List<NotificationResponse> removeDuplicates(List<NotificationResponse> notificationResponses) {
         return notificationResponses.stream()
                 .distinct()
                 .collect(Collectors.toList());
