@@ -32,6 +32,7 @@ public class NotificationService {
                 .stream()
                 .filter(NotificationEntity::isGlobal)
                 .map(NotificationEntity::buildResponse)
+                .sorted()
                 .collect(Collectors.toList());
 
         return new NotificationResponseList(notifications);
