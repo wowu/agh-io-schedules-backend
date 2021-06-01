@@ -3,7 +3,7 @@ package gameofthreads.schedules.dto.response;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class NotificationResponse implements Serializable {
+public class NotificationResponse implements Serializable, Comparable<NotificationResponse> {
     public final Integer value;
     public final String unit;
 
@@ -25,4 +25,8 @@ public class NotificationResponse implements Serializable {
         return Objects.hash(value, unit);
     }
 
+    @Override
+    public int compareTo(NotificationResponse o) {
+        return !unit.equals(o.unit) ? o.unit.compareTo(unit) : value.compareTo(o.value);
+    }
 }
