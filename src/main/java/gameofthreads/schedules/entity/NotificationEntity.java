@@ -39,4 +39,16 @@ public class NotificationEntity {
         return Role.ADMIN.equals(user.getRole());
     }
 
+    public boolean checkUser(Integer userId){
+        return userId.equals(user.getId());
+    }
+
+    public TimeUnit getUnit() {
+        return unit;
+    }
+
+    public Integer getValue() {
+        return value;
+    }
+
 }

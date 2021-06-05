@@ -44,4 +44,16 @@ public class SubscriptionEntity {
         this.active = active;
     }
 
+    public UserEntity getUser() {
+        return email.getUser();
+    }
+
+    public boolean isGlobal() {
+        return email.getUser().isGlobalNotifications();
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
 }

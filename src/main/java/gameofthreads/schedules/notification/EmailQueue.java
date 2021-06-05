@@ -1,0 +1,23 @@
+package gameofthreads.schedules.notification;
+
+import gameofthreads.schedules.notification.model.Notification;
+import gameofthreads.schedules.notification.model.ScheduleDetails;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+public class EmailQueue {
+    private final ConcurrentHashMap<Integer, Notification> concurrentHashMap = new ConcurrentHashMap<>();
+
+    public void add(Integer scheduleId, Notification notification) {
+        concurrentHashMap.putIfAbsent(scheduleId, notification);
+    }
+
+    public void updateDetails(Integer scheduleId, String email, ScheduleDetails details) {
+        concurrentHashMap.get(scheduleId).addDetails(email, details);
+    }
+
+    public Notification get(Integer scheduleId) {
+        return concurrentHashMap.get(scheduleId);
+    }
+
+}

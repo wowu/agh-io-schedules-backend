@@ -1,5 +1,7 @@
 package gameofthreads.schedules.entity;
 
+import gameofthreads.schedules.notification.model.Meeting;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -117,4 +119,20 @@ public class MeetingEntity {
     public String getRoom() {
         return room;
     }
+
+    public Meeting buildMeetingNotification() {
+        return new Meeting(
+                dateStart,
+                dateEnd,
+                subject,
+                groupName,
+                lecturerName,
+                lecturerSurname,
+                type,
+                lengthInHours,
+                format,
+                room
+        );
+    }
+
 }
