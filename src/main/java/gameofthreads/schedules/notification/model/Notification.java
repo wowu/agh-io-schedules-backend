@@ -24,4 +24,12 @@ public class Notification {
         return conference.first().calculateSendTime(minutes);
     }
 
+    public TreeSet<Conference> getConference() {
+        return conference;
+    }
+
+    public TreeSet<Schedule> getSchedules() {
+        return schedules;
+    }
+
 }

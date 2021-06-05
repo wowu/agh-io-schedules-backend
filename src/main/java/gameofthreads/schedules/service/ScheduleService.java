@@ -11,6 +11,7 @@ import gameofthreads.schedules.entity.LecturerEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.notification.EmailGateway;
 import gameofthreads.schedules.repository.*;
 import org.springframework.data.util.Pair;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,16 +31,18 @@ public class ScheduleService {
     private final MeetingRepository meetingRepository;
     private final ExcelRepository excelRepository;
     private final LecturerRepository lecturerRepository;
+    private final EmailGateway emailGateway;
 
     public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository,
                            MeetingRepository meetingRepository, ExcelRepository excelRepository,
-                           LecturerRepository lecturerRepository) {
+                           LecturerRepository lecturerRepository, EmailGateway emailGateway) {
 
         this.scheduleRepository = scheduleRepository;
         this.conferenceRepository = conferenceRepository;
         this.meetingRepository = meetingRepository;
         this.excelRepository = excelRepository;
         this.lecturerRepository = lecturerRepository;
+        this.emailGateway = emailGateway;
     }
 
     private boolean isUserARole(JwtAuthenticationToken jwtToken, String role) {
@@ -126,6 +130,7 @@ public class ScheduleService {
             }
 
             scheduleRepository.save(scheduleEntity.get());
+            CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
             return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
         } catch (Exception e) {

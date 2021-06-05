@@ -6,16 +6,16 @@ import gameofthreads.schedules.entity.MeetingType;
 import java.time.LocalDateTime;
 
 public final class Meeting implements Comparable<Meeting> {
-    final LocalDateTime dateStart;
-    final LocalDateTime dateEnd;
-    final String subject;
-    final String group;
-    final String lecturerName;
-    final String lecturerSurname;
-    final MeetingType type;
-    final Integer lengthInHours;
-    final MeetingFormat format;
-    final String room;
+    public final LocalDateTime dateStart;
+    public final LocalDateTime dateEnd;
+    public final String subject;
+    public final String group;
+    public final String lecturerName;
+    public final String lecturerSurname;
+    public final MeetingType type;
+    public final Integer lengthInHours;
+    public final MeetingFormat format;
+    public final String room;
 
     public Meeting(LocalDateTime dateStart, LocalDateTime dateEnd, String subject, String group,
                    String lecturerName, String lecturerSurname, MeetingType type, Integer lengthInHours,
@@ -40,6 +40,10 @@ public final class Meeting implements Comparable<Meeting> {
 
     public LocalDateTime minusMinutes(Integer minutes) {
         return dateStart.minusMinutes(minutes);
+    }
+
+    public String getFullName() {
+        return lecturerName + " " + lecturerSurname;
     }
 
 }

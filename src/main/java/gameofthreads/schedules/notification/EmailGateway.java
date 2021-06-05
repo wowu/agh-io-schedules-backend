@@ -1,6 +1,5 @@
 package gameofthreads.schedules.notification;
 
-import gameofthreads.schedules.dto.request.MyNotificationsDto;
 import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.NotificationEntity;

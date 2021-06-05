@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -57,7 +58,8 @@ public class NotificationService {
         //TODO : update zamiast kasowania i wstawiania
         notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(admin.getEmailEntity().getEmail()));
         notificationRepository.saveAll(notificationsToSave);
-        emailGateway.reInitEmailQueue();
+
+        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
         return new NotificationResponseList(withoutDuplicates);
     }
@@ -95,7 +97,8 @@ public class NotificationService {
         //TODO : update zamiast kasowania i wstawiania
         notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(lecturerEmail));
         notificationRepository.saveAll(notificationsToSave);
-        emailGateway.reInitEmailQueue();
+
+        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
         return new MyNotificationsDto(notificationsList.isGlobal(), withoutDuplicates);
     }

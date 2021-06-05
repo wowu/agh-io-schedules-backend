@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,10 +73,11 @@ public class SubscriptionService {
             return Either.left(ErrorMessage.EXISTING_SUBSCRIPTION.asJson());
         }
 
+        CompletableFuture.runAsync(() -> emailGateway.add(scheduleId, email));
+
         return scheduleEntity
                 .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
-                .peek(subscriptionEntity -> emailGateway.add(scheduleId, email))
                 .map(AddSubscription::new);
     }
 
@@ -111,7 +113,8 @@ public class SubscriptionService {
 
         SubscriptionEntity subscription = subscriptionEntity.get();
         subscriptionRepository.delete(subscription);
-        emailGateway.delete(subscription.getSchedule().getId(), subscription.getEmail());
+
+        CompletableFuture.runAsync(() -> emailGateway.delete(subscription.getSchedule().getId(), subscription.getEmail()));
 
         return Either.right(true);
     }

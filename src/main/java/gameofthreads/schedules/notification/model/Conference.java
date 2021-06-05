@@ -20,4 +20,8 @@ public final class Conference implements Comparable<Conference> {
         return meetings.first().minusMinutes(minutes);
     }
 
+    public TreeSet<Meeting> getMeetings() {
+        return meetings;
+    }
+
 }
