@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class EmailQueue {
-    private final ConcurrentHashMap<Integer, Notification> concurrentHashMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer, Notification> concurrentHashMap = new ConcurrentHashMap<>();
 
     public void add(Integer scheduleId, Notification notification) {
         concurrentHashMap.putIfAbsent(scheduleId, notification);
@@ -18,12 +18,16 @@ public class EmailQueue {
         concurrentHashMap.get(scheduleId).addDetails(email, details);
     }
 
-    public Notification get(Integer scheduleId) {
+    public Notification update(Integer scheduleId) {
         return concurrentHashMap.get(scheduleId);
     }
 
     public void delete(Integer scheduleId, String email) {
         concurrentHashMap.get(scheduleId).deleteDetails(email);
+    }
+
+    public void clear(){
+        concurrentHashMap = new ConcurrentHashMap<>();
     }
 
 }

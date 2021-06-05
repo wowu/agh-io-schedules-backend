@@ -60,7 +60,7 @@ public class EmailSender {
             Integer scheduleId = subscription.getSchedule().getId();
             List<ConferenceEntity> conferencePerSchedule = conferenceGroupedBySchedule.get(scheduleId);
 
-            if (emailQueue.get(scheduleId) == null) {
+            if (emailQueue.update(scheduleId) == null) {
                 emailQueue.add(scheduleId, new Notification(prepareConference(conferencePerSchedule)));
             }
 

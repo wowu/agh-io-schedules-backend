@@ -29,15 +29,16 @@ public class ScheduleService {
     private final MeetingRepository meetingRepository;
     private final ExcelRepository excelRepository;
     private final LecturerRepository lecturerRepository;
-    private final UserRepository userRepository;
 
-    public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository, MeetingRepository meetingRepository, ExcelRepository excelRepository, LecturerRepository lecturerRepository, UserRepository userRepository) {
+    public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository,
+                           MeetingRepository meetingRepository, ExcelRepository excelRepository,
+                           LecturerRepository lecturerRepository) {
+
         this.scheduleRepository = scheduleRepository;
         this.conferenceRepository = conferenceRepository;
         this.meetingRepository = meetingRepository;
         this.excelRepository = excelRepository;
         this.lecturerRepository = lecturerRepository;
-        this.userRepository = userRepository;
     }
 
     private boolean isUserARole(JwtAuthenticationToken jwtToken, String role) {

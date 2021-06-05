@@ -1,5 +1,6 @@
 package gameofthreads.schedules.notification;
 
+import gameofthreads.schedules.dto.request.MyNotificationsDto;
 import gameofthreads.schedules.entity.ConferenceEntity;
 import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.entity.NotificationEntity;
@@ -26,14 +27,17 @@ public class EmailGateway {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final ConferenceRepository conferenceRepository;
+    private final EmailSender emailSender;
 
     public EmailGateway(EmailQueue emailQueue, NotificationRepository notificationRepository,
-                        UserRepository userRepository, ConferenceRepository conferenceRepository) {
+                        UserRepository userRepository, ConferenceRepository conferenceRepository,
+                        EmailSender emailSender) {
 
         this.emailQueue = emailQueue;
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.conferenceRepository = conferenceRepository;
+        this.emailSender = emailSender;
     }
 
     public void add(Integer scheduleId, String email) {
@@ -72,7 +76,7 @@ public class EmailGateway {
     }
 
     private void createNewNotification(Integer scheduleId) {
-        if (emailQueue.get(scheduleId) == null) {
+        if (emailQueue.update(scheduleId) == null) {
             List<Conference> conferences = new ArrayList<>();
 
             for (ConferenceEntity conferenceEntity : conferenceRepository.fetchWithScheduleAndMeetings(scheduleId)) {
@@ -92,9 +96,9 @@ public class EmailGateway {
         emailQueue.delete(scheduleId, email);
     }
 
-    public void modify(Integer scheduleId, String email) {
-        delete(scheduleId, email);
-        add(scheduleId, email);
+    public synchronized void reInitEmailQueue() {
+        emailQueue.clear();
+        emailSender.initEmailQueue();
     }
 
 }
