@@ -2,9 +2,11 @@ package gameofthreads.schedules.notification;
 
 import gameofthreads.schedules.notification.model.Notification;
 import gameofthreads.schedules.notification.model.ScheduleDetails;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+@Component
 public class EmailQueue {
     private final ConcurrentHashMap<Integer, Notification> concurrentHashMap = new ConcurrentHashMap<>();
 
@@ -18,6 +20,10 @@ public class EmailQueue {
 
     public Notification get(Integer scheduleId) {
         return concurrentHashMap.get(scheduleId);
+    }
+
+    public void delete(Integer scheduleId, String email) {
+        concurrentHashMap.get(scheduleId).deleteDetails(email);
     }
 
 }

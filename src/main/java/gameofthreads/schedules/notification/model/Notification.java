@@ -16,6 +16,10 @@ public class Notification {
         schedules.add(new Schedule(email, createSendTime(details.timeInMinute()), details.fullNotifications));
     }
 
+    public void deleteDetails(String email){
+        schedules.removeIf(schedule -> email.equals(schedule.email));
+    }
+
     private LocalDateTime createSendTime(Integer minutes) {
         return conference.first().calculateSendTime(minutes);
     }

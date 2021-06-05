@@ -16,4 +16,8 @@ public interface ConferenceRepository extends JpaRepository<ConferenceEntity, In
 
     @Query("SELECT c FROM ConferenceEntity AS c INNER JOIN FETCH c.schedule INNER JOIN FETCH c.meetingEntities")
     Set<ConferenceEntity> fetchWithScheduleAndMeetings();
+
+    @Query("SELECT c FROM ConferenceEntity AS c INNER JOIN FETCH c.schedule INNER JOIN FETCH c.meetingEntities " +
+            "WHERE c.schedule.id=:scheduleId")
+    Set<ConferenceEntity> fetchWithScheduleAndMeetings(Integer scheduleId);
 }

@@ -8,12 +8,14 @@ import gameofthreads.schedules.notification.model.ScheduleDetails;
 import gameofthreads.schedules.repository.ConferenceRepository;
 import gameofthreads.schedules.repository.NotificationRepository;
 import gameofthreads.schedules.repository.SubscriptionRepository;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
+@Component
 public class EmailSender {
     private final EmailQueue emailQueue;
     private final NotificationRepository notificationRepository;
@@ -29,7 +31,7 @@ public class EmailSender {
         this.conferenceRepository = conferenceRepository;
     }
 
-    public void initMap() {
+    public void initEmailQueue() {
         List<NotificationEntity> notificationEntities = notificationRepository.findAll();
 
         Map<Integer, List<ConferenceEntity>> conferenceGroupedBySchedule = conferenceRepository
@@ -49,6 +51,12 @@ public class EmailSender {
                 .collect(toList());
 
         for (SubscriptionEntity subscription : subscriptionEntities) {
+            Boolean isNotificationsEnabled = subscription.getSchedule().getNotifications();
+
+            if(isNotificationsEnabled != null && !isNotificationsEnabled){
+                continue;
+            }
+
             Integer scheduleId = subscription.getSchedule().getId();
             List<ConferenceEntity> conferencePerSchedule = conferenceGroupedBySchedule.get(scheduleId);
 
