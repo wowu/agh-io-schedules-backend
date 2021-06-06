@@ -12,11 +12,11 @@ public class Notification {
         this.conference.addAll(conference);
     }
 
-    public void addDetails(String email, ScheduleDetails details) {
+    public void addSchedule(String email, ScheduleDetails details) {
         schedules.add(new Schedule(email, createSendTime(details.timeInMinute()), details.fullNotifications));
     }
 
-    public void deleteDetails(String email){
+    public void deleteSchedule(String email){
         schedules.removeIf(schedule -> email.equals(schedule.email));
     }
 

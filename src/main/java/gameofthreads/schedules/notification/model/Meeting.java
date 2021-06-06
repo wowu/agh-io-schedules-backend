@@ -4,6 +4,7 @@ import gameofthreads.schedules.entity.MeetingFormat;
 import gameofthreads.schedules.entity.MeetingType;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 
 public final class Meeting implements Comparable<Meeting> {
     public final LocalDateTime dateStart;
@@ -35,7 +36,9 @@ public final class Meeting implements Comparable<Meeting> {
 
     @Override
     public int compareTo(Meeting meeting) {
-        return dateStart.compareTo(meeting.dateStart);
+        return Comparator.comparing(Meeting::getDateStart)
+                .thenComparing(Meeting::getFullName)
+                .compare(this, meeting);
     }
 
     public LocalDateTime minusMinutes(Integer minutes) {
@@ -44,6 +47,10 @@ public final class Meeting implements Comparable<Meeting> {
 
     public String getFullName() {
         return lecturerName + " " + lecturerSurname;
+    }
+
+    public LocalDateTime getDateStart() {
+        return dateStart;
     }
 
 }

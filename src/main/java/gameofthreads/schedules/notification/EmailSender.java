@@ -111,8 +111,8 @@ public class EmailSender {
         }
     }
 
-    @Scheduled(initialDelay = 1000 * 15, fixedDelay=Long.MAX_VALUE)
-    public void activeJob(){
+    @Scheduled(initialDelay = 1000 * 15, fixedDelay = Long.MAX_VALUE)
+    public void activeJob() {
         LOGGER.info("Email sender is active.");
         initEmailQueue();
         CompletableFuture.runAsync(this::run);

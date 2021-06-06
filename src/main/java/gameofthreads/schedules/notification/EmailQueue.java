@@ -5,9 +5,12 @@ import gameofthreads.schedules.notification.model.Notification;
 import gameofthreads.schedules.notification.model.Schedule;
 import gameofthreads.schedules.notification.model.ScheduleDetails;
 import org.springframework.data.util.Pair;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -22,7 +25,7 @@ public class EmailQueue {
     }
 
     public void updateDetails(Integer scheduleId, String email, ScheduleDetails details) {
-        concurrentHashMap.get(scheduleId).addDetails(email, details);
+        concurrentHashMap.get(scheduleId).addSchedule(email, details);
     }
 
     public Notification update(Integer scheduleId) {
@@ -30,7 +33,7 @@ public class EmailQueue {
     }
 
     public void delete(Integer scheduleId, String email) {
-        concurrentHashMap.get(scheduleId).deleteDetails(email);
+        concurrentHashMap.get(scheduleId).deleteSchedule(email);
     }
 
     public void clear() {
@@ -38,43 +41,48 @@ public class EmailQueue {
     }
 
     public Optional<Pair<TreeSet<Conference>, Schedule>> pop() {
-        final LocalDateTime future = LocalDateTime.of(2100, 10, 10, 10, 10);
+        final LocalDateTime now = LocalDateTime.now();
+        LocalDateTime future = LocalDateTime.of(2100, 10, 10, 10, 10);
 
         TreeSet<Conference> conferences = new TreeSet<>();
 
         Schedule schedule = null;
-        Integer scheduleToModify = null;
-        String emailToRemove = null;
+        Map.Entry<Integer, Notification> chosenEntry = null;
 
         for (Map.Entry<Integer, Notification> entry : concurrentHashMap.entrySet()) {
             Schedule firstEmailToSend = entry.getValue().getSchedules().first();
-            if (future.isAfter(firstEmailToSend.getLocalDateTime())) {
+
+            if (now.isAfter(firstEmailToSend.getLocalDateTime())) {
+                entry.getValue().getSchedules().pollFirst();
+            } else if (future.isAfter(firstEmailToSend.getLocalDateTime())) {
                 conferences = entry.getValue().getConference();
                 schedule = firstEmailToSend;
-                scheduleToModify = entry.getKey();
-                emailToRemove = firstEmailToSend.getEmail();
+                chosenEntry = entry;
+                future = firstEmailToSend.getLocalDateTime();
             }
         }
 
         if (schedule != null && schedule.isTimeToSend()) {
-            delete(scheduleToModify, emailToRemove);
+            chosenEntry.getValue().getSchedules().pollFirst();
             return Optional.of(Pair.of(conferences, schedule));
         }
 
         return Optional.empty();
     }
 
-    public Integer size() {
-        int size = 0;
-
+    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 900)
+    public void monitorQueue() {
         for (Map.Entry<Integer, Notification> entry : concurrentHashMap.entrySet()) {
-            System.out.println(entry.getValue().getSchedules().size());
-            if (entry.getValue().getSchedules().size() > 0) {
-                size++;
+            System.out.println("Schedule ID : " + entry.getKey());
+            for (Schedule schedule : entry.getValue().getSchedules()) {
+                System.out.println(
+                        MessageFormat.format("Email {0}; Time {1}",
+                                schedule.getEmail(),
+                                schedule.getLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        )
+                );
             }
         }
-
-        return size;
     }
 
 }
