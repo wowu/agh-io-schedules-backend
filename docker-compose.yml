@@ -3,12 +3,13 @@ services:
   postgres:
     image: postgres:13-alpine
     ports:
-      - 5432:5432
+      - "5820:5820"
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: docker
       POSTGRES_USER: docker
       POSTGRES_DB: io_schedules
+    command: -p 5820
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
@@ -19,6 +20,8 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+    command:
+      --spring.profiles.active=docker
     depends_on:
       - postgres
 
