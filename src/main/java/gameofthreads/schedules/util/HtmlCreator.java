@@ -1,12 +1,11 @@
 package gameofthreads.schedules.util;
 
-import gameofthreads.schedules.entity.ConferenceEntity;
-import gameofthreads.schedules.entity.MeetingEntity;
+import gameofthreads.schedules.notification.model.Conference;
+import gameofthreads.schedules.notification.model.Meeting;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 public class HtmlCreator {
@@ -51,7 +50,7 @@ public class HtmlCreator {
                 "</style>";
     }
 
-    private static String createMeetingsTable(Collection<MeetingEntity> meetingEntities) {
+    private static String createMeetingsTable(TreeSet<Meeting> meetings) {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("<table id=\"customers\">");
@@ -70,16 +69,16 @@ public class HtmlCreator {
 
         stringBuilder.append("</tr>");
 
-        for (MeetingEntity meeting : meetingEntities) {
+        for (Meeting meeting : meetings) {
             stringBuilder.append("<tr>");
-            stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_DATE)));
-            stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_TIME)));
-            stringBuilder.append(tdPack(meeting.getDateEnd().format(DateTimeFormatter.ISO_LOCAL_TIME)));
-            stringBuilder.append(tdPack(meeting.getSubject()));
-            stringBuilder.append(tdPack(meeting.getGroup()));
-            stringBuilder.append(tdPack(meeting.getType().getPolishTranslation()));
+            stringBuilder.append(tdPack(meeting.dateStart.format(DateTimeFormatter.ISO_LOCAL_DATE)));
+            stringBuilder.append(tdPack(meeting.dateStart.format(DateTimeFormatter.ISO_LOCAL_TIME)));
+            stringBuilder.append(tdPack(meeting.dateEnd.format(DateTimeFormatter.ISO_LOCAL_TIME)));
+            stringBuilder.append(tdPack(meeting.subject));
+            stringBuilder.append(tdPack(meeting.group));
+            stringBuilder.append(tdPack(meeting.type.getPolishTranslation()));
             stringBuilder.append(tdPack(meeting.getFullName()));
-            stringBuilder.append(tdPack(meeting.getRoom().equals("") ? "Zdalnie" : meeting.getRoom()));
+            stringBuilder.append(tdPack(meeting.room.equals("") ? "Zdalnie" : meeting.room));
             stringBuilder.append("</tr>");
         }
 
@@ -87,13 +86,13 @@ public class HtmlCreator {
         return stringBuilder.toString();
     }
 
-    public static String createMeetingsEmail(List<MeetingEntity> meetingEntities) {
+    public static String createMeetingsEmail(TreeSet<Meeting> meetings) {
         return createCssStyle() +
-                createGreetings(meetingEntities.get(0).getFullName()) +
-                createMeetingsTable(meetingEntities);
+                createGreetings(meetings.first().getFullName()) +
+                createMeetingsTable(meetings);
     }
 
-    public static String createConferencesEmail(Set<ConferenceEntity> conferenceEntities) {
+    public static String createConferencesEmail(Set<Conference> conferences) {
         int counter = 1;
         final String emptyName = "";
         StringBuilder stringBuilder = new StringBuilder();
@@ -101,9 +100,9 @@ public class HtmlCreator {
         stringBuilder.append(createCssStyle());
         stringBuilder.append(createGreetings(emptyName));
 
-        for (ConferenceEntity conference : conferenceEntities) {
+        for (Conference conference : conferences) {
             stringBuilder.append("<h3>Konferencja : ").append(counter).append("</h3>");
-            stringBuilder.append(createMeetingsTable(conference.getMeetingEntities()));
+            stringBuilder.append(createMeetingsTable(conference.getMeetings()));
             counter++;
         }
 

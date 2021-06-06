@@ -7,6 +7,7 @@ import gameofthreads.schedules.entity.NotificationEntity;
 import gameofthreads.schedules.entity.TimeUnit;
 import gameofthreads.schedules.entity.UserEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.notification.EmailGateway;
 import gameofthreads.schedules.repository.NotificationRepository;
 import gameofthreads.schedules.repository.UserRepository;
 import io.vavr.control.Either;
@@ -15,16 +16,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final EmailGateway emailGateway;
 
-    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository,
+                               EmailGateway emailGateway) {
+
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
+        this.emailGateway = emailGateway;
     }
 
     public NotificationResponseList getGlobalNotifications() {
@@ -52,6 +58,8 @@ public class NotificationService {
         //TODO : update zamiast kasowania i wstawiania
         notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(admin.getEmailEntity().getEmail()));
         notificationRepository.saveAll(notificationsToSave);
+
+        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
         return new NotificationResponseList(withoutDuplicates);
     }
@@ -89,6 +97,8 @@ public class NotificationService {
         //TODO : update zamiast kasowania i wstawiania
         notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(lecturerEmail));
         notificationRepository.saveAll(notificationsToSave);
+
+        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
         return new MyNotificationsDto(notificationsList.isGlobal(), withoutDuplicates);
     }

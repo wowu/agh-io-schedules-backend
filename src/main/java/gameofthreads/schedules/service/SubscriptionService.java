@@ -6,6 +6,7 @@ import gameofthreads.schedules.entity.EmailEntity;
 import gameofthreads.schedules.entity.ScheduleEntity;
 import gameofthreads.schedules.entity.SubscriptionEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.notification.EmailGateway;
 import gameofthreads.schedules.repository.EmailRepository;
 import gameofthreads.schedules.repository.ScheduleRepository;
 import gameofthreads.schedules.repository.SubscriptionRepository;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,11 +25,15 @@ public class SubscriptionService {
     private final ScheduleRepository scheduleRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final EmailRepository emailRepository;
+    private final EmailGateway emailGateway;
 
-    public SubscriptionService(ScheduleRepository scheduleRepository, SubscriptionRepository subscriptionRepository, EmailRepository emailRepository) {
+    public SubscriptionService(ScheduleRepository scheduleRepository, SubscriptionRepository subscriptionRepository,
+                               EmailRepository emailRepository, EmailGateway emailGateway) {
+
         this.scheduleRepository = scheduleRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.emailRepository = emailRepository;
+        this.emailGateway = emailGateway;
     }
 
     private Either<Object, ScheduleEntity> findScheduleById(Integer scheduleId) {
@@ -67,6 +73,8 @@ public class SubscriptionService {
             return Either.left(ErrorMessage.EXISTING_SUBSCRIPTION.asJson());
         }
 
+        CompletableFuture.runAsync(() -> emailGateway.add(scheduleId, email));
+
         return scheduleEntity
                 .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
@@ -83,6 +91,7 @@ public class SubscriptionService {
         return findScheduleByUUID(uuid)
                 .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
+                .peek(subscriptionEntity -> emailGateway.add(subscriptionEntity.getSchedule().getId(), email))
                 .map(AddSubscription::new);
     }
 
@@ -102,7 +111,10 @@ public class SubscriptionService {
             return Either.left(ErrorMessage.WRONG_SUBSCRIPTION_ID.asJson());
         }
 
-        subscriptionRepository.delete(subscriptionEntity.get());
+        SubscriptionEntity subscription = subscriptionEntity.get();
+        subscriptionRepository.delete(subscription);
+
+        CompletableFuture.runAsync(() -> emailGateway.delete(subscription.getSchedule().getId(), subscription.getEmail()));
 
         return Either.right(true);
     }
