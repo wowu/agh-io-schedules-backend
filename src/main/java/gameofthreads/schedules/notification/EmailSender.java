@@ -154,7 +154,9 @@ public class EmailSender {
                                 meetings.add(meeting);
                             }
                         }
-                        conferences.add(new Conference(meetings));
+                        if(meetings.size() > 0) {
+                            conferences.add(new Conference(meetings));
+                        }
                     }
 
                     html = HtmlCreator.createConferencesEmail(conferences, fullName);
