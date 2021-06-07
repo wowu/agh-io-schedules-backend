@@ -2,6 +2,7 @@ package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.entity.ExcelEntity;
 import gameofthreads.schedules.message.ErrorMessage;
+import gameofthreads.schedules.notification.EmailGateway;
 import gameofthreads.schedules.service.FileUploadService;
 import gameofthreads.schedules.service.ScheduleService;
 import org.springframework.core.io.ByteArrayResource;
@@ -17,16 +18,19 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
 @RequestMapping("api/schedules")
 public class ScheduleController {
     private final FileUploadService fileUploadService;
     private final ScheduleService scheduleService;
+    private final EmailGateway emailGateway;
 
-    public ScheduleController(FileUploadService fileUploadService, ScheduleService scheduleService) {
+    public ScheduleController(FileUploadService fileUploadService, ScheduleService scheduleService, EmailGateway emailGateway) {
         this.fileUploadService = fileUploadService;
         this.scheduleService = scheduleService;
+        this.emailGateway = emailGateway;
     }
 
     @GetMapping()
@@ -54,9 +58,12 @@ public class ScheduleController {
                                                     @RequestParam(value = "notifications", required = false) Boolean notifications) {
         Pair<?, Boolean> schedule = scheduleService.modifySchedule(scheduleId, name, description, notifications);
 
-        return schedule.getSecond() ?
-                ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst()) :
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
+        if(schedule.getSecond()){
+            CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
+            return ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst());
+        }
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schedule.getFirst());
     }
 
     @DeleteMapping("/{scheduleId}")

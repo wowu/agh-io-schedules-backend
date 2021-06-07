@@ -15,12 +15,7 @@ public class HtmlCreator {
 
     private static String createGreetings(String fullName) {
         return "<h3>Cześć " + fullName + " !</h3>" +
-                "<p>" +
-                "Jak Ci mija dzień? Mam nadzieję, że jest super! " +
-                "Pamiętasz o zbliżającej się konferencji? " +
-                "Jeśli nie, to nie musisz się martwić. " +
-                "Poniżej znajduje się lista wydarzeń, które mogą Cię zainteresować." +
-                "<p>";
+                "<p>Oto wydarzenia w harmonogramie, który śledzisz.<p>";
     }
 
     private static String createCssStyle() {
@@ -86,24 +81,19 @@ public class HtmlCreator {
         return stringBuilder.toString();
     }
 
-    public static String createMeetingsEmail(TreeSet<Meeting> meetings) {
-        return createCssStyle() +
-                createGreetings(meetings.first().getFullName()) +
-                createMeetingsTable(meetings);
-    }
-
-    public static String createConferencesEmail(Set<Conference> conferences) {
+    public static String createConferencesEmail(Set<Conference> conferences, String fullName) {
         int counter = 1;
-        final String emptyName = "";
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append(createCssStyle());
-        stringBuilder.append(createGreetings(emptyName));
+        stringBuilder.append(createGreetings(fullName));
 
         for (Conference conference : conferences) {
-            stringBuilder.append("<h3>Konferencja : ").append(counter).append("</h3>");
-            stringBuilder.append(createMeetingsTable(conference.getMeetings()));
-            counter++;
+            if(conference.getMeetings().size() > 0) {
+                stringBuilder.append("<h3>Konferencja : ").append(counter).append("</h3>");
+                stringBuilder.append(createMeetingsTable(conference.getMeetings()));
+                counter++;
+            }
         }
 
         return stringBuilder.toString();

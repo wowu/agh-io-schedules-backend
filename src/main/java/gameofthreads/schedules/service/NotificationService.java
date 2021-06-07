@@ -23,14 +23,10 @@ import java.util.stream.Collectors;
 public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final EmailGateway emailGateway;
 
-    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository,
-                               EmailGateway emailGateway) {
-
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
-        this.emailGateway = emailGateway;
     }
 
     public NotificationResponseList getGlobalNotifications() {
@@ -58,8 +54,6 @@ public class NotificationService {
         //TODO : update zamiast kasowania i wstawiania
         notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(admin.getEmailEntity().getEmail()));
         notificationRepository.saveAll(notificationsToSave);
-
-        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
         return new NotificationResponseList(withoutDuplicates);
     }
@@ -97,8 +91,6 @@ public class NotificationService {
         //TODO : update zamiast kasowania i wstawiania
         notificationRepository.deleteAll(notificationRepository.findByUser_Email_Email(lecturerEmail));
         notificationRepository.saveAll(notificationsToSave);
-
-        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
         return new MyNotificationsDto(notificationsList.isGlobal(), withoutDuplicates);
     }

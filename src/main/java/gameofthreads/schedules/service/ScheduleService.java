@@ -31,18 +31,16 @@ public class ScheduleService {
     private final MeetingRepository meetingRepository;
     private final ExcelRepository excelRepository;
     private final LecturerRepository lecturerRepository;
-    private final EmailGateway emailGateway;
 
     public ScheduleService(ScheduleRepository scheduleRepository, ConferenceRepository conferenceRepository,
                            MeetingRepository meetingRepository, ExcelRepository excelRepository,
-                           LecturerRepository lecturerRepository, EmailGateway emailGateway) {
+                           LecturerRepository lecturerRepository) {
 
         this.scheduleRepository = scheduleRepository;
         this.conferenceRepository = conferenceRepository;
         this.meetingRepository = meetingRepository;
         this.excelRepository = excelRepository;
         this.lecturerRepository = lecturerRepository;
-        this.emailGateway = emailGateway;
     }
 
     private boolean isUserARole(JwtAuthenticationToken jwtToken, String role) {
@@ -130,7 +128,6 @@ public class ScheduleService {
             }
 
             scheduleRepository.save(scheduleEntity.get());
-            CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
 
             return Pair.of(new DetailedScheduleResponse(scheduleEntity.get()), Boolean.TRUE);
         } catch (Exception e) {

@@ -1,17 +1,22 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.response.NotificationResponseList;
+import gameofthreads.schedules.notification.EmailGateway;
 import gameofthreads.schedules.service.NotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("api/notifications")
 public class NotificationController {
     private final NotificationService notificationService;
+    private final EmailGateway emailGateway;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(NotificationService notificationService, EmailGateway emailGateway) {
         this.notificationService = notificationService;
+        this.emailGateway = emailGateway;
     }
 
     @GetMapping()
@@ -23,7 +28,9 @@ public class NotificationController {
     public ResponseEntity<NotificationResponseList> addGlobalNotifications(
             @RequestBody NotificationResponseList notifications){
 
-        return ResponseEntity.ok(notificationService.addGlobalNotifications(notifications));
+        NotificationResponseList notificationResponseList = notificationService.addGlobalNotifications(notifications);
+        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
+        return ResponseEntity.ok(notificationResponseList);
     }
 
 }

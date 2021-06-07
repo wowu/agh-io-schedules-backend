@@ -1,6 +1,7 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.request.MyNotificationsDto;
+import gameofthreads.schedules.notification.EmailGateway;
 import gameofthreads.schedules.service.LecturerService;
 import gameofthreads.schedules.service.NotificationService;
 import org.slf4j.Logger;
@@ -11,17 +12,22 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequestMapping("api/me")
 public class MeController {
     private final static Logger LOGGER = LoggerFactory.getLogger(LoggerFactory.class);
     private final LecturerService lecturerService;
     private final NotificationService notificationService;
+    private final EmailGateway emailGateway;
 
-    public MeController(LecturerService lecturerService, NotificationService notificationService) {
+    public MeController(LecturerService lecturerService, NotificationService notificationService,
+                        EmailGateway emailGateway) {
 
         this.lecturerService = lecturerService;
         this.notificationService = notificationService;
+        this.emailGateway = emailGateway;
     }
 
     @GetMapping("/schedules")
@@ -43,10 +49,12 @@ public class MeController {
     }
 
     @PutMapping(value = "/notifications")
-    public ResponseEntity<MyNotificationsDto> addGlobalNotifications(
-            Authentication token, @RequestBody MyNotificationsDto notifications) {
+    public ResponseEntity<MyNotificationsDto> addMyNotifications(Authentication token,
+                                                                 @RequestBody MyNotificationsDto notifications) {
 
-        return ResponseEntity.ok(notificationService.addMyNotifications((JwtAuthenticationToken) token, notifications));
+        MyNotificationsDto myNotificationsDto = notificationService.addMyNotifications((JwtAuthenticationToken) token, notifications);
+        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
+        return ResponseEntity.ok(myNotificationsDto);
     }
 
 }

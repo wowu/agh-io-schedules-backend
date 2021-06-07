@@ -73,8 +73,6 @@ public class SubscriptionService {
             return Either.left(ErrorMessage.EXISTING_SUBSCRIPTION.asJson());
         }
 
-        CompletableFuture.runAsync(() -> emailGateway.add(scheduleId, email));
-
         return scheduleEntity
                 .map(schedule -> new SubscriptionEntity(emailEntity, schedule))
                 .map(subscriptionRepository::save)
