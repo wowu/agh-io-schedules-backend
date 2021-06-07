@@ -80,6 +80,8 @@ public class EmailSender {
 
             if (subscription.getUser() != null && subscription.isGlobal()) {
                 addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+            } else if (subscription.getLecturer() != null && subscription.getUser() == null) {
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
             } else if (subscription.getUser() == null) {
                 addNotifications(globalNotifications, scheduleId, subscription.getEmail(), true);
             } else {
@@ -94,6 +96,7 @@ public class EmailSender {
                     addNotifications(userNotifications, scheduleId, subscription.getEmail(), false);
                 }
             }
+
         }
     }
 
@@ -128,9 +131,12 @@ public class EmailSender {
 
     public void run() {
         while (true) {
-            emailQueue.pop().map(pair -> {
-                LOGGER.info("SEND EMAIL TO : " + pair.getSecond().getEmail());
+            var optionalPair = emailQueue.pop();
 
+            if (optionalPair.isPresent()) {
+                var pair = optionalPair.get();
+
+                LOGGER.info("SEND EMAIL TO : " + pair.getSecond().getEmail());
                 String fullName = "";
 
                 if (!pair.getSecond().isFullNotification()) {
@@ -142,15 +148,28 @@ public class EmailSender {
                             });
 
                     if (!fullName.equals("")) {
-                        final String finalFullName = fullName;
-                        pair.getFirst().forEach(conference -> conference.filter(finalFullName));
+                        final TreeSet<Conference> conferences = new TreeSet<>();
+
+                        for(Conference conference : pair.getFirst()){
+                            List<Meeting> meetings = new ArrayList<>();
+                            for(Meeting meeting : conference.getMeetings()){
+                                if(meeting.getFullName().equals(fullName)){
+                                    meetings.add(meeting);
+                                }
+                            }
+                            conferences.add(new Conference(meetings));
+                        }
+
+                        String html = HtmlCreator.createConferencesEmail(conferences, fullName);
+                        sendEmail(pair.getSecond().getEmail(), html);
+
+                        continue;
                     }
                 }
 
                 String html = HtmlCreator.createConferencesEmail(pair.getFirst(), fullName);
                 sendEmail(pair.getSecond().getEmail(), html);
-                return null;
-            });
+            }
         }
     }
 

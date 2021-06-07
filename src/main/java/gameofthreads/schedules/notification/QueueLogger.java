@@ -20,7 +20,7 @@ public class QueueLogger {
         this.emailQueue = emailQueue;
     }
 
-    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 30)
+    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60 * 15)
     public void monitorQueue() {
         LOGGER.info("MONITORING QUEUE START");
 
