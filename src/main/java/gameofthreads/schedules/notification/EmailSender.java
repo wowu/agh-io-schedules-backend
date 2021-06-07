@@ -3,6 +3,7 @@ package gameofthreads.schedules.notification;
 import gameofthreads.schedules.entity.*;
 import gameofthreads.schedules.notification.model.*;
 import gameofthreads.schedules.repository.ConferenceRepository;
+import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.NotificationRepository;
 import gameofthreads.schedules.repository.SubscriptionRepository;
 import gameofthreads.schedules.util.HtmlCreator;
@@ -14,12 +15,12 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 @Component
 public class EmailSender {
@@ -30,16 +31,18 @@ public class EmailSender {
     private final ConferenceRepository conferenceRepository;
     private final NotificationRepository notificationRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final LecturerRepository lecturerRepository;
 
     public EmailSender(EmailQueue notificationQueue, NotificationRepository notificationRepository,
                        SubscriptionRepository subscriptionRepository, ConferenceRepository conferenceRepository,
-                       JavaMailSender javaMailSender) {
+                       JavaMailSender javaMailSender, LecturerRepository lecturerRepository) {
 
         this.emailQueue = notificationQueue;
         this.notificationRepository = notificationRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.conferenceRepository = conferenceRepository;
         this.javaMailSender = javaMailSender;
+        this.lecturerRepository = lecturerRepository;
     }
 
     public void initEmailQueue() {
@@ -75,17 +78,25 @@ public class EmailSender {
                 emailQueue.add(scheduleId, new Notification(prepareConference(conferencePerSchedule)));
             }
 
-            if (subscription.getUser() == null || subscription.isGlobal()) {
-                addNotifications(globalNotifications, scheduleId, subscription.getEmail());
+            if (subscription.getUser() != null && subscription.isGlobal()) {
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+            } else if (subscription.getLecturer() != null && subscription.getUser() == null) {
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+            } else if (subscription.getUser() == null) {
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), true);
             } else {
                 List<NotificationEntity> userNotifications = notificationEntities
                         .stream()
                         .filter(notification -> notification.checkUser(subscription.getUser().getId()))
                         .collect(toList());
 
-                userNotifications = userNotifications.size() == 0 ? globalNotifications : userNotifications;
-                addNotifications(userNotifications, scheduleId, subscription.getEmail());
+                if (userNotifications.size() == 0) {
+                    addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+                } else {
+                    addNotifications(userNotifications, scheduleId, subscription.getEmail(), false);
+                }
             }
+
         }
     }
 
@@ -104,28 +115,61 @@ public class EmailSender {
         return conferences;
     }
 
-    private void addNotifications(List<NotificationEntity> notifications, Integer scheduleId, String email) {
-        for (NotificationEntity global : notifications) {
-            var details = new ScheduleDetails(global.getUnit(), global.getValue(), true);
+    private void addNotifications(List<NotificationEntity> notifications, Integer scheduleId, String email, boolean full) {
+        for (NotificationEntity notification : notifications) {
+            var details = new ScheduleDetails(notification.getUnit(), notification.getValue(), full);
             emailQueue.updateDetails(scheduleId, email, details);
         }
     }
 
-    @Scheduled(initialDelay = 1000 * 15, fixedDelay = Long.MAX_VALUE)
+    @PostConstruct
     public void activeJob() {
-        LOGGER.info("Email sender is active.");
+        LOGGER.info("EMAIL SENDER IS ACTIVE.");
         initEmailQueue();
         CompletableFuture.runAsync(this::run);
     }
 
     public void run() {
         while (true) {
-            emailQueue.pop().map(pair -> {
-                LOGGER.info("SEND EMAIL to : " + pair.getSecond().getEmail());
-                String html = HtmlCreator.createConferencesEmail(pair.getFirst());
-                CompletableFuture.runAsync(() -> sendEmail(pair.getSecond().getEmail(), html));
-                return null;
-            });
+            var optionalPair = emailQueue.pop();
+
+            if (optionalPair.isPresent()) {
+                var pair = optionalPair.get();
+
+                LOGGER.info("SEND EMAIL TO : " + pair.getSecond().getEmail());
+                String fullName = "";
+
+                if (!pair.getSecond().isFullNotification()) {
+                    fullName = lecturerRepository.findByEmail_Email(pair.getSecond().getEmail())
+                            .map(LecturerEntity::getFullName)
+                            .orElseGet(() -> {
+                                LOGGER.info("SEND EMAIL : fullName was not found.");
+                                return "";
+                            });
+
+                    if (!fullName.equals("")) {
+                        final TreeSet<Conference> conferences = new TreeSet<>();
+
+                        for(Conference conference : pair.getFirst()){
+                            List<Meeting> meetings = new ArrayList<>();
+                            for(Meeting meeting : conference.getMeetings()){
+                                if(meeting.getFullName().equals(fullName)){
+                                    meetings.add(meeting);
+                                }
+                            }
+                            conferences.add(new Conference(meetings));
+                        }
+
+                        String html = HtmlCreator.createConferencesEmail(conferences, fullName);
+                        sendEmail(pair.getSecond().getEmail(), html);
+
+                        continue;
+                    }
+                }
+
+                String html = HtmlCreator.createConferencesEmail(pair.getFirst(), fullName);
+                sendEmail(pair.getSecond().getEmail(), html);
+            }
         }
     }
 

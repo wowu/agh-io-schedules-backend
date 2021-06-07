@@ -22,7 +22,7 @@ public final class Schedule implements Comparable<Schedule> {
     }
 
     public boolean isTimeToSend() {
-        final int DELAY_IN_SECOND = 120;
+        final int DELAY_IN_SECOND = 60;
         boolean isBefore = localDateTime.isBefore(LocalDateTime.now().plusSeconds(DELAY_IN_SECOND));
         boolean isAfter = localDateTime.isAfter(LocalDateTime.now().minusSeconds(DELAY_IN_SECOND));
         return isAfter && isBefore;

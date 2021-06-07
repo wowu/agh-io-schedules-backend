@@ -48,6 +48,10 @@ public class SubscriptionEntity {
         return email.getUser();
     }
 
+    public LecturerEntity getLecturer() {
+        return email.getLecturer();
+    }
+
     public boolean isGlobal() {
         return email.getUser().isGlobalNotifications();
     }

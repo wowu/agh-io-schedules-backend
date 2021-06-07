@@ -25,7 +25,7 @@ public final class Conference implements Comparable<Conference> {
     }
 
     public void filter(String fullName){
-        meetings.removeIf(meeting -> fullName.equals(meeting.getFullName()));
+        meetings.removeIf(meeting -> !fullName.equals(meeting.getFullName()));
     }
 
 }

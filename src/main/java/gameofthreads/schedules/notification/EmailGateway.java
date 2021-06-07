@@ -1,14 +1,12 @@
 package gameofthreads.schedules.notification;
 
-import gameofthreads.schedules.entity.ConferenceEntity;
-import gameofthreads.schedules.entity.MeetingEntity;
-import gameofthreads.schedules.entity.NotificationEntity;
-import gameofthreads.schedules.entity.UserEntity;
+import gameofthreads.schedules.entity.*;
 import gameofthreads.schedules.notification.model.Conference;
 import gameofthreads.schedules.notification.model.Meeting;
 import gameofthreads.schedules.notification.model.Notification;
 import gameofthreads.schedules.notification.model.ScheduleDetails;
 import gameofthreads.schedules.repository.ConferenceRepository;
+import gameofthreads.schedules.repository.LecturerRepository;
 import gameofthreads.schedules.repository.NotificationRepository;
 import gameofthreads.schedules.repository.UserRepository;
 import org.springframework.stereotype.Component;
@@ -27,29 +25,34 @@ public class EmailGateway {
     private final NotificationRepository notificationRepository;
     private final ConferenceRepository conferenceRepository;
     private final EmailSender emailSender;
+    private final LecturerRepository lecturerRepository;
 
     public EmailGateway(EmailQueue emailQueue, NotificationRepository notificationRepository,
                         UserRepository userRepository, ConferenceRepository conferenceRepository,
-                        EmailSender emailSender) {
+                        EmailSender emailSender, LecturerRepository lecturerRepository) {
 
         this.emailQueue = emailQueue;
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.conferenceRepository = conferenceRepository;
         this.emailSender = emailSender;
+        this.lecturerRepository = lecturerRepository;
     }
 
     public void add(Integer scheduleId, String email) {
+        boolean full = lecturerRepository.findByEmail_Email(email).isEmpty();
         Optional<UserEntity> userEntity = userRepository.findByEmail_Email(email);
 
-        if (userEntity.isEmpty() || userEntity.get().isGlobalNotifications()) {
-            addGlobalNotification(scheduleId, email);
+        if (userEntity.isEmpty()) {
+            addGlobalNotification(scheduleId, email, full);
+        } else if (userEntity.get().isGlobalNotifications()) {
+            addGlobalNotification(scheduleId, email, full);
+        } else {
+            addLocalNotification(scheduleId, email);
         }
-
-        addLocalNotification(scheduleId, email);
     }
 
-    private void addGlobalNotification(Integer scheduleId, String email) {
+    private void addGlobalNotification(Integer scheduleId, String email, boolean full) {
         createNewNotification(scheduleId);
 
         List<NotificationEntity> globalNotifications = notificationRepository.findAll()
@@ -58,7 +61,7 @@ public class EmailGateway {
                 .collect(toList());
 
         for (NotificationEntity global : globalNotifications) {
-            var details = new ScheduleDetails(global.getUnit(), global.getValue(), true);
+            var details = new ScheduleDetails(global.getUnit(), global.getValue(), full);
             emailQueue.updateDetails(scheduleId, email, details);
         }
     }
