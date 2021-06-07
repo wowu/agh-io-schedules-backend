@@ -77,12 +77,20 @@ public class EmailSender {
                 emailQueue.add(scheduleId, new Notification(prepareConference(conferencePerSchedule)));
             }
 
+            String fullName;
+
+            if (subscription.getLecturer() == null) {
+                fullName = "";
+            } else {
+                fullName = subscription.getLecturer().getFullName();
+            }
+
             if (subscription.getUser() != null && subscription.isGlobal()) {
-                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false, fullName);
             } else if (subscription.getLecturer() != null && subscription.getUser() == null) {
-                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false, fullName);
             } else if (subscription.getUser() == null) {
-                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), true);
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), true, fullName);
             } else {
                 List<NotificationEntity> userNotifications = notificationEntities
                         .stream()
@@ -90,12 +98,11 @@ public class EmailSender {
                         .collect(toList());
 
                 if (userNotifications.size() == 0) {
-                    addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+                    addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false, fullName);
                 } else {
-                    addNotifications(userNotifications, scheduleId, subscription.getEmail(), false);
+                    addNotifications(userNotifications, scheduleId, subscription.getEmail(), false, fullName);
                 }
             }
-
         }
     }
 
@@ -114,9 +121,9 @@ public class EmailSender {
         return conferences;
     }
 
-    private void addNotifications(List<NotificationEntity> notifications, Integer scheduleId, String email, boolean full) {
+    private void addNotifications(List<NotificationEntity> notifications, Integer scheduleId, String email, boolean full, String fullName) {
         for (NotificationEntity notification : notifications) {
-            var details = new ScheduleDetails(notification.getUnit(), notification.getValue(), full);
+            var details = new ScheduleDetails(notification.getUnit(), notification.getValue(), full, fullName);
             emailQueue.updateDetails(scheduleId, email, details);
         }
     }
@@ -154,7 +161,7 @@ public class EmailSender {
                                 meetings.add(meeting);
                             }
                         }
-                        if(meetings.size() > 0) {
+                        if (meetings.size() > 0) {
                             conferences.add(new Conference(meetings));
                         }
                     }

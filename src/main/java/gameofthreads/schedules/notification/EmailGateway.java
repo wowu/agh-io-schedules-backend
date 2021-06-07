@@ -40,19 +40,21 @@ public class EmailGateway {
     }
 
     public void add(Integer scheduleId, String email) {
-        boolean full = lecturerRepository.findByEmail_Email(email).isEmpty();
+        String fullName = lecturerRepository.findByEmail_Email(email)
+                .map(LecturerEntity::getFullName).orElse("");
+
         Optional<UserEntity> userEntity = userRepository.findByEmail_Email(email);
 
         if (userEntity.isEmpty()) {
-            addGlobalNotification(scheduleId, email, full);
+            addGlobalNotification(scheduleId, email, fullName.equals(""), fullName);
         } else if (userEntity.get().isGlobalNotifications()) {
-            addGlobalNotification(scheduleId, email, full);
+            addGlobalNotification(scheduleId, email, fullName.equals(""), fullName);
         } else {
-            addLocalNotification(scheduleId, email);
+            addLocalNotification(scheduleId, email, fullName);
         }
     }
 
-    private void addGlobalNotification(Integer scheduleId, String email, boolean full) {
+    private void addGlobalNotification(Integer scheduleId, String email, boolean full, String fullName) {
         createNewNotification(scheduleId);
 
         List<NotificationEntity> globalNotifications = notificationRepository.findAll()
@@ -61,18 +63,18 @@ public class EmailGateway {
                 .collect(toList());
 
         for (NotificationEntity global : globalNotifications) {
-            var details = new ScheduleDetails(global.getUnit(), global.getValue(), full);
+            var details = new ScheduleDetails(global.getUnit(), global.getValue(), full, fullName);
             emailQueue.updateDetails(scheduleId, email, details);
         }
     }
 
-    private void addLocalNotification(Integer scheduleId, String email) {
+    private void addLocalNotification(Integer scheduleId, String email, String fullName) {
         createNewNotification(scheduleId);
 
         Set<NotificationEntity> globalNotifications = notificationRepository.findByUser_Email_Email(email);
 
         for (NotificationEntity global : globalNotifications) {
-            var details = new ScheduleDetails(global.getUnit(), global.getValue(), false);
+            var details = new ScheduleDetails(global.getUnit(), global.getValue(), false, fullName);
             emailQueue.updateDetails(scheduleId, email, details);
         }
     }
