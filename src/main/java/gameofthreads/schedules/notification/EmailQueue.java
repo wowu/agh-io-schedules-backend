@@ -69,9 +69,6 @@ public class EmailQueue {
         }
 
         if (schedule != null && schedule.isTimeToSend()) {
-            System.out.println(schedule.isFullNotification());
-            System.out.println(schedule.getLocalDateTime());
-            System.out.println(schedule.getEmail());
             TreeSet<Conference> conferences = chosenEntry.getValue().getConference();
             chosenEntry.getValue().getSchedules().pollFirst();
             return Optional.of(Pair.of(conferences, schedule));

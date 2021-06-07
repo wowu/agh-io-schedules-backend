@@ -78,7 +78,9 @@ public class EmailSender {
                 emailQueue.add(scheduleId, new Notification(prepareConference(conferencePerSchedule)));
             }
 
-            if (subscription.getUser() == null || subscription.isGlobal()) {
+            if (subscription.getUser() != null && subscription.isGlobal()) {
+                addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+            } else if (subscription.getUser() == null) {
                 addNotifications(globalNotifications, scheduleId, subscription.getEmail(), true);
             } else {
                 List<NotificationEntity> userNotifications = notificationEntities
@@ -86,12 +88,11 @@ public class EmailSender {
                         .filter(notification -> notification.checkUser(subscription.getUser().getId()))
                         .collect(toList());
 
-                if(userNotifications.size() == 0){
-                    addNotifications(globalNotifications, scheduleId, subscription.getEmail(), true);
-                }else{
+                if (userNotifications.size() == 0) {
+                    addNotifications(globalNotifications, scheduleId, subscription.getEmail(), false);
+                } else {
                     addNotifications(userNotifications, scheduleId, subscription.getEmail(), false);
                 }
-
             }
         }
     }
@@ -132,7 +133,7 @@ public class EmailSender {
 
                 String fullName = "";
 
-                if(!pair.getSecond().isFullNotification()) {
+                if (!pair.getSecond().isFullNotification()) {
                     fullName = lecturerRepository.findByEmail_Email(pair.getSecond().getEmail())
                             .map(LecturerEntity::getFullName)
                             .orElseGet(() -> {
@@ -140,7 +141,7 @@ public class EmailSender {
                                 return "";
                             });
 
-                    if(!fullName.equals("")){
+                    if (!fullName.equals("")) {
                         final String finalFullName = fullName;
                         pair.getFirst().forEach(conference -> conference.filter(finalFullName));
                     }

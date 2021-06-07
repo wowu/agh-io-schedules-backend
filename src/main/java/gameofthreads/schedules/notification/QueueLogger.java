@@ -20,7 +20,7 @@ public class QueueLogger {
         this.emailQueue = emailQueue;
     }
 
-    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60 * 2)
+    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 30)
     public void monitorQueue() {
         LOGGER.info("MONITORING QUEUE START");
 
@@ -28,8 +28,9 @@ public class QueueLogger {
             LOGGER.info("Schedule ID : " + entry.getKey());
             for (Schedule schedule : entry.getValue().getSchedules()) {
                 LOGGER.info(
-                        MessageFormat.format("Email {0}; Time {1}",
+                        MessageFormat.format("Email {0}; Full {1};  Time {2}",
                                 schedule.getEmail(),
+                                schedule.isFullNotification(),
                                 schedule.getLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                         )
                 );
