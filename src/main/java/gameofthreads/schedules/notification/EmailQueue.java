@@ -54,8 +54,9 @@ public class EmailQueue {
             Schedule firstSubscription = subscriptionsPerSchedule.first();
 
             while (now.isAfter(firstSubscription.getLocalDateTime())) {
-                entry.getValue().getSchedules().pollFirst();
-                firstSubscription = entry.getValue().getSchedules().first();
+                subscriptionsPerSchedule.pollFirst();
+                if(subscriptionsPerSchedule.size() == 0) break;
+                firstSubscription = subscriptionsPerSchedule.first();
                 if (firstSubscription == null) break;
             }
 
@@ -71,6 +72,7 @@ public class EmailQueue {
         if (schedule != null && schedule.isTimeToSend()) {
             TreeSet<Conference> conferences = chosenEntry.getValue().getConference();
             chosenEntry.getValue().getSchedules().pollFirst();
+            System.out.println(schedule.getEmail());
             return Optional.of(Pair.of(conferences, schedule));
         }
 

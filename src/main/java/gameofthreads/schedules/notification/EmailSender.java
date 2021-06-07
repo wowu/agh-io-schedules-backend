@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.mail.internet.MimeMessage;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static java.util.stream.Collectors.*;
 
@@ -124,52 +123,48 @@ public class EmailSender {
 
     @PostConstruct
     public void activeJob() {
-        LOGGER.info("EMAIL SENDER IS ACTIVE.");
         initEmailQueue();
-        CompletableFuture.runAsync(this::run);
     }
 
+    @Scheduled(initialDelay = 1000 * 30, fixedDelay = 100)
     public void run() {
-        while (true) {
-            var optionalPair = emailQueue.pop();
+        var optionalPair = emailQueue.pop();
+        if (optionalPair.isPresent()) {
+            var pair = optionalPair.get();
 
-            if (optionalPair.isPresent()) {
-                var pair = optionalPair.get();
+            LOGGER.info("SEND EMAIL TO : " + pair.getSecond().getEmail());
+            String fullName = "";
+            String html = "";
 
-                LOGGER.info("SEND EMAIL TO : " + pair.getSecond().getEmail());
-                String fullName = "";
+            if (!pair.getSecond().isFullNotification()) {
+                fullName = lecturerRepository.findByEmail_Email(pair.getSecond().getEmail())
+                        .map(LecturerEntity::getFullName)
+                        .orElseGet(() -> {
+                            LOGGER.info("SEND EMAIL : fullName was not found.");
+                            return "";
+                        });
 
-                if (!pair.getSecond().isFullNotification()) {
-                    fullName = lecturerRepository.findByEmail_Email(pair.getSecond().getEmail())
-                            .map(LecturerEntity::getFullName)
-                            .orElseGet(() -> {
-                                LOGGER.info("SEND EMAIL : fullName was not found.");
-                                return "";
-                            });
+                if (!fullName.equals("")) {
+                    final TreeSet<Conference> conferences = new TreeSet<>();
 
-                    if (!fullName.equals("")) {
-                        final TreeSet<Conference> conferences = new TreeSet<>();
-
-                        for(Conference conference : pair.getFirst()){
-                            List<Meeting> meetings = new ArrayList<>();
-                            for(Meeting meeting : conference.getMeetings()){
-                                if(meeting.getFullName().equals(fullName)){
-                                    meetings.add(meeting);
-                                }
+                    for (Conference conference : pair.getFirst()) {
+                        List<Meeting> meetings = new ArrayList<>();
+                        for (Meeting meeting : conference.getMeetings()) {
+                            if (meeting.getFullName().equals(fullName)) {
+                                meetings.add(meeting);
                             }
-                            conferences.add(new Conference(meetings));
                         }
-
-                        String html = HtmlCreator.createConferencesEmail(conferences, fullName);
-                        sendEmail(pair.getSecond().getEmail(), html);
-
-                        continue;
+                        conferences.add(new Conference(meetings));
                     }
-                }
 
-                String html = HtmlCreator.createConferencesEmail(pair.getFirst(), fullName);
-                sendEmail(pair.getSecond().getEmail(), html);
+                    html = HtmlCreator.createConferencesEmail(conferences, fullName);
+                }
             }
+
+            if (html.equals("")) {
+                html = HtmlCreator.createConferencesEmail(pair.getFirst(), fullName);
+            }
+            sendEmail(pair.getSecond().getEmail(), html);
         }
     }
 
