@@ -1,86 +1,60 @@
 package gameofthreads.schedules.notification;
 
-import gameofthreads.schedules.notification.model.Conference;
-import gameofthreads.schedules.notification.model.Notification;
-import gameofthreads.schedules.notification.model.Schedule;
-import gameofthreads.schedules.notification.model.ScheduleDetails;
-import org.springframework.data.util.Pair;
+import gameofthreads.schedules.entity.TimeUnit;
+import gameofthreads.schedules.notification.model.Meeting;
+import gameofthreads.schedules.notification.model.Timetable;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class EmailQueue {
-    private final ConcurrentHashMap<Integer, Notification> concurrentHashMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Meeting> queue = new ConcurrentHashMap<>();
 
-    public void add(Integer scheduleId, Notification notification) {
-        concurrentHashMap.putIfAbsent(scheduleId, notification);
+    public void add(Integer id, Meeting meeting) {
+        queue.putIfAbsent(id, meeting);
     }
 
-    public void updateDetails(Integer scheduleId, String email, ScheduleDetails details) {
-        concurrentHashMap.get(scheduleId).addSchedule(email, details);
+    public void addTimetable(Integer id, TimeUnit timeUnit, Integer timeValue, String email) {
+        queue.get(id).addTimetable(timeUnit, timeValue, email);
     }
 
-    public Notification update(Integer scheduleId) {
-        return concurrentHashMap.get(scheduleId);
-    }
-
-    public void delete(Integer scheduleId, String email) {
-        concurrentHashMap.get(scheduleId).deleteSchedule(email);
+    public ConcurrentHashMap<Integer, Meeting> getQueue() {
+        return queue;
     }
 
     public void clear() {
-        concurrentHashMap.clear();
+        queue.clear();
     }
 
-    public Optional<Pair<TreeSet<Conference>, Schedule>> pop() {
-        final LocalDateTime now = LocalDateTime.now();
+    public Optional<Meeting> pop() {
         LocalDateTime future = LocalDateTime.of(2100, 10, 10, 10, 10);
+        Meeting top = null;
 
-        Schedule schedule = null;
-        Map.Entry<Integer, Notification> chosenEntry = null;
+        for(Map.Entry<Integer, Meeting> entry : queue.entrySet()){
+            Meeting meeting = entry.getValue();
 
-        for (Map.Entry<Integer, Notification> entry : concurrentHashMap.entrySet()) {
-            TreeSet<Schedule> subscriptionsPerSchedule = entry.getValue().getSchedules();
-
-            if (subscriptionsPerSchedule.size() == 0) {
+            if(meeting.hasZeroTimetable()){
                 continue;
             }
 
-            Schedule firstSubscription = subscriptionsPerSchedule.first();
-
-            while (now.isAfter(firstSubscription.getLocalDateTime())) {
-                subscriptionsPerSchedule.pollFirst();
-                if(subscriptionsPerSchedule.size() == 0) break;
-                firstSubscription = subscriptionsPerSchedule.first();
-                if (firstSubscription == null) break;
-            }
-
-            if (firstSubscription == null) continue;
-
-            if (future.isAfter(firstSubscription.getLocalDateTime())) {
-                future = firstSubscription.getLocalDateTime();
-                schedule = firstSubscription;
-                chosenEntry = entry;
+            if(meeting.first().isPresent()){
+                LocalDateTime localDateTime = meeting.first().map(Timetable::getLocalDateTime).get();
+                if(localDateTime.isBefore(future)){
+                    future = localDateTime;
+                    top = meeting;
+                }
             }
         }
 
-        if (schedule != null && schedule.isTimeToSend()) {
-            TreeSet<Conference> conferences = chosenEntry.getValue().getConference();
-            chosenEntry.getValue().getSchedules().pollFirst();
-            System.out.println(schedule.getEmail());
-            return Optional.of(Pair.of(conferences, schedule));
+        if(top != null && top.isTimeToSend()){
+            return Optional.of(top);
         }
 
         return Optional.empty();
-    }
-
-    public ConcurrentHashMap<Integer, Notification> getConcurrentHashMap() {
-        return concurrentHashMap;
     }
 
 }

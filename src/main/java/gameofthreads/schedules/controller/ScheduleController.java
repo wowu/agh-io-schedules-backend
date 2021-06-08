@@ -59,7 +59,7 @@ public class ScheduleController {
         Pair<?, Boolean> schedule = scheduleService.modifySchedule(scheduleId, name, description, notifications);
 
         if(schedule.getSecond()){
-            CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
+            CompletableFuture.runAsync(emailGateway::reInit);
             return ResponseEntity.status(HttpStatus.OK).body(schedule.getFirst());
         }
 
