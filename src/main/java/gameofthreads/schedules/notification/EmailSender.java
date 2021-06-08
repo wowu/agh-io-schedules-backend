@@ -39,7 +39,7 @@ public class EmailSender {
         }
     }
 
-    private void sendEmail(String email, String htmlMessage) {
+    protected void sendEmail(String email, String htmlMessage) {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
 

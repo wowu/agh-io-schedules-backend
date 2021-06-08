@@ -1,8 +1,13 @@
 package gameofthreads.schedules.util;
 
+import gameofthreads.schedules.entity.ConferenceEntity;
+import gameofthreads.schedules.entity.MeetingEntity;
 import gameofthreads.schedules.notification.model.Meeting;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class HtmlCreator {
@@ -75,6 +80,72 @@ public class HtmlCreator {
         stringBuilder.append("</tr>");
 
         stringBuilder.append("</table>");
+        return stringBuilder.toString();
+    }
+
+    public static String createMeetingsEmail(List<MeetingEntity> meetings) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append(createCssStyle());
+        stringBuilder.append(createGreetings());
+        stringBuilder.append("<table id=\"customers\">");
+        stringBuilder.append("<tr>");
+
+        createMeetingsTable(meetings);
+        stringBuilder.append("</table>");
+
+        return stringBuilder.toString();
+    }
+
+    private static String createMeetingsTable(Collection<MeetingEntity> meetingEntities) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("<table id=\"customers\">");
+        stringBuilder.append("<tr>");
+        Stream.of(
+                "<th>Data</th>",
+                "<th>Początek</th>",
+                "<th>Koniec</th>",
+                "<th>Przedmiot</th>",
+                "<th>Grupa</th>",
+                "<th>Rodzaj</th>",
+                "<th>Prowadzący</th>",
+                "<th>Sala</th>"
+        ).forEach(stringBuilder::append);
+
+        stringBuilder.append("</tr>");
+
+        for (MeetingEntity meeting : meetingEntities) {
+            stringBuilder.append("<tr>");
+            stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_DATE)));
+            stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_TIME)));
+            stringBuilder.append(tdPack(meeting.getDateEnd().format(DateTimeFormatter.ISO_LOCAL_TIME)));
+            stringBuilder.append(tdPack(meeting.getSubject()));
+            stringBuilder.append(tdPack(meeting.getGroup()));
+            stringBuilder.append(tdPack(meeting.getType().getPolishTranslation()));
+            stringBuilder.append(tdPack(meeting.getFullName()));
+            stringBuilder.append(tdPack(meeting.getRoom().equals("") ? "Zdalnie" : meeting.getRoom()));
+            stringBuilder.append("</tr>");
+        }
+
+        stringBuilder.append("</table>");
+        return stringBuilder.toString();
+    }
+
+
+    public static String createConferencesEmail(Set<ConferenceEntity> conferenceEntities) {
+        int counter = 1;
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append(createCssStyle());
+        stringBuilder.append(createGreetings());
+
+        for (ConferenceEntity conference : conferenceEntities) {
+            stringBuilder.append("<h3>Konferencja : ").append(counter).append("</h3>");
+            stringBuilder.append(createMeetingsTable(conference.getMeetingEntities()));
+            counter++;
+        }
+
         return stringBuilder.toString();
     }
 

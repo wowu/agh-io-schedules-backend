@@ -82,11 +82,17 @@ public final class Meeting implements Comparable<Meeting> {
     }
 
     public boolean addTimetable(TimeUnit timeUnit, Integer timeValue, String email) {
+        if(timeUnit.equals(TimeUnit.DAY)){
+            return false;
+        }
+
         LocalDateTime sendTime = getDateStart().minusMinutes((long) timeUnit.getMinutes() * timeValue);
+
         if(sendTime.isAfter(LocalDateTime.now())) {
             timetables.add(new Timetable(email, sendTime));
             return true;
         }
+
         return false;
     }
 
