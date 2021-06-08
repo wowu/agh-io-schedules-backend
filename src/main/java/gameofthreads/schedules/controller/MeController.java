@@ -53,7 +53,7 @@ public class MeController {
                                                                  @RequestBody MyNotificationsDto notifications) {
 
         MyNotificationsDto myNotificationsDto = notificationService.addMyNotifications((JwtAuthenticationToken) token, notifications);
-        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
+        CompletableFuture.runAsync(emailGateway::reInit);
         return ResponseEntity.ok(myNotificationsDto);
     }
 

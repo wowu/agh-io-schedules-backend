@@ -29,7 +29,7 @@ public class NotificationController {
             @RequestBody NotificationResponseList notifications){
 
         NotificationResponseList notificationResponseList = notificationService.addGlobalNotifications(notifications);
-        CompletableFuture.runAsync(emailGateway::reInitEmailQueue);
+        CompletableFuture.runAsync(emailGateway::reInit);
         return ResponseEntity.ok(notificationResponseList);
     }
 

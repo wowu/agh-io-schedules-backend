@@ -34,7 +34,7 @@ public class SubscriptionController {
             return ResponseEntity.badRequest().body(result.getLeft());
         }
 
-        CompletableFuture.runAsync(() -> emailGateway.add(id, email));
+        CompletableFuture.runAsync(emailGateway::reInit);
         return ResponseEntity.ok(result.get());
     }
 
@@ -59,6 +59,7 @@ public class SubscriptionController {
             return ResponseEntity.badRequest().body(result.getLeft());
         }
 
+        CompletableFuture.runAsync(emailGateway::reInit);
         return ResponseEntity.noContent().build();
     }
 

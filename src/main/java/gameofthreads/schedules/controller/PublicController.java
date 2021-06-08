@@ -1,6 +1,7 @@
 package gameofthreads.schedules.controller;
 
 import gameofthreads.schedules.dto.response.AddSubscription;
+import gameofthreads.schedules.notification.EmailGateway;
 import gameofthreads.schedules.service.ScheduleService;
 import gameofthreads.schedules.service.SubscriptionService;
 import io.vavr.control.Either;
@@ -12,16 +13,20 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequestMapping("api/public/schedules")
 public class PublicController {
     private final Logger LOGGER = LoggerFactory.getLogger(PublicController.class);
     private final ScheduleService scheduleService;
     private final SubscriptionService subscriptionService;
+    private final EmailGateway emailGateway;
 
-    public PublicController(ScheduleService scheduleService, SubscriptionService subscriptionService) {
+    public PublicController(ScheduleService scheduleService, SubscriptionService subscriptionService, EmailGateway emailGateway) {
         this.scheduleService = scheduleService;
         this.subscriptionService = subscriptionService;
+        this.emailGateway = emailGateway;
     }
 
     @GetMapping("/{uuid}")
@@ -42,6 +47,8 @@ public class PublicController {
             return ResponseEntity.badRequest().body(result.getLeft());
         }
 
+        CompletableFuture.runAsync(emailGateway::reInit);
         return ResponseEntity.ok(result.get());
     }
+
 }

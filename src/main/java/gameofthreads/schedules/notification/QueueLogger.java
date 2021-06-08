@@ -1,7 +1,7 @@
 package gameofthreads.schedules.notification;
 
-import gameofthreads.schedules.notification.model.Notification;
-import gameofthreads.schedules.notification.model.Schedule;
+import gameofthreads.schedules.notification.model.Meeting;
+import gameofthreads.schedules.notification.model.Timetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,18 +20,17 @@ public class QueueLogger {
         this.emailQueue = emailQueue;
     }
 
-    @Scheduled(initialDelay = 1000 * 60, fixedDelay = 1000 * 60 * 15)
+    @Scheduled(initialDelay = 1000 * 5, fixedDelay = 1000 * 60 * 2)
     public void monitorQueue() {
         LOGGER.info("MONITORING QUEUE START");
 
-        for (Map.Entry<Integer, Notification> entry : emailQueue.getConcurrentHashMap().entrySet()) {
-            LOGGER.info("Schedule ID : " + entry.getKey());
-            for (Schedule schedule : entry.getValue().getSchedules()) {
+        for (Map.Entry<Integer, Meeting> entry : emailQueue.getQueue().entrySet()) {
+            LOGGER.info("Meeting ID : " + entry.getKey());
+            for (Timetable timetable : entry.getValue().getTimetables()) {
                 LOGGER.info(
-                        MessageFormat.format("Email {0}; Full {1};  Time {2}",
-                                schedule.getEmail(),
-                                schedule.isFullNotification(),
-                                schedule.getLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                        MessageFormat.format("Email {0}; Time {1}",
+                                timetable.getEmail(),
+                                timetable.getLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                         )
                 );
             }

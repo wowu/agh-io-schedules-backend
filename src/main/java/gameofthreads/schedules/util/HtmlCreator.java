@@ -1,11 +1,8 @@
 package gameofthreads.schedules.util;
 
-import gameofthreads.schedules.notification.model.Conference;
 import gameofthreads.schedules.notification.model.Meeting;
 
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Stream;
 
 public class HtmlCreator {
@@ -13,9 +10,9 @@ public class HtmlCreator {
         return "<td>" + value + "</td>";
     }
 
-    private static String createGreetings(String fullName) {
-        return "<h3>Cześć " + fullName + " !</h3>" +
-                "<p>Oto wydarzenia w harmonogramie, który śledzisz.<p>";
+    private static String createGreetings() {
+        return "<h3>Cześć!</h3>" +
+                "<p>Oto wydarzenie w harmonogramie, który śledzisz.<p>";
     }
 
     private static String createCssStyle() {
@@ -45,9 +42,11 @@ public class HtmlCreator {
                 "</style>";
     }
 
-    private static String createMeetingsTable(TreeSet<Meeting> meetings) {
+    public static String createContext(Meeting meeting) {
         StringBuilder stringBuilder = new StringBuilder();
 
+        stringBuilder.append(createCssStyle());
+        stringBuilder.append(createGreetings());
         stringBuilder.append("<table id=\"customers\">");
         stringBuilder.append("<tr>");
 
@@ -64,38 +63,18 @@ public class HtmlCreator {
 
         stringBuilder.append("</tr>");
 
-        for (Meeting meeting : meetings) {
-            stringBuilder.append("<tr>");
-            stringBuilder.append(tdPack(meeting.dateStart.format(DateTimeFormatter.ISO_LOCAL_DATE)));
-            stringBuilder.append(tdPack(meeting.dateStart.format(DateTimeFormatter.ISO_LOCAL_TIME)));
-            stringBuilder.append(tdPack(meeting.dateEnd.format(DateTimeFormatter.ISO_LOCAL_TIME)));
-            stringBuilder.append(tdPack(meeting.subject));
-            stringBuilder.append(tdPack(meeting.group));
-            stringBuilder.append(tdPack(meeting.type.getPolishTranslation()));
-            stringBuilder.append(tdPack(meeting.getFullName()));
-            stringBuilder.append(tdPack(meeting.room.equals("") ? "Zdalnie" : meeting.room));
-            stringBuilder.append("</tr>");
-        }
+        stringBuilder.append("<tr>");
+        stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_DATE)));
+        stringBuilder.append(tdPack(meeting.getDateStart().format(DateTimeFormatter.ISO_LOCAL_TIME)));
+        stringBuilder.append(tdPack(meeting.dateEnd.format(DateTimeFormatter.ISO_LOCAL_TIME)));
+        stringBuilder.append(tdPack(meeting.subject));
+        stringBuilder.append(tdPack(meeting.group));
+        stringBuilder.append(tdPack(meeting.type.getPolishTranslation()));
+        stringBuilder.append(tdPack(meeting.getFullName()));
+        stringBuilder.append(tdPack(meeting.room.equals("") ? "Zdalnie" : meeting.room));
+        stringBuilder.append("</tr>");
 
         stringBuilder.append("</table>");
-        return stringBuilder.toString();
-    }
-
-    public static String createConferencesEmail(Set<Conference> conferences, String fullName) {
-        int counter = 1;
-        StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append(createCssStyle());
-        stringBuilder.append(createGreetings(fullName));
-
-        for (Conference conference : conferences) {
-            if(conference.getMeetings().size() > 0) {
-                stringBuilder.append("<h3>Konferencja : ").append(counter).append("</h3>");
-                stringBuilder.append(createMeetingsTable(conference.getMeetings()));
-                counter++;
-            }
-        }
-
         return stringBuilder.toString();
     }
 

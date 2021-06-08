@@ -1,23 +1,23 @@
 package gameofthreads.schedules.notification.model;
 
+import org.springframework.lang.NonNull;
+
 import java.time.LocalDateTime;
 import java.util.Comparator;
 
-public final class Schedule implements Comparable<Schedule> {
+public final class Timetable implements Comparable<Timetable> {
     final String email;
     final LocalDateTime localDateTime;
-    final boolean fullNotification;
 
-    public Schedule(String email, LocalDateTime localDateTime, boolean fullNotification) {
+    public Timetable(String email, LocalDateTime localDateTime) {
         this.email = email;
         this.localDateTime = localDateTime;
-        this.fullNotification = fullNotification;
     }
 
     @Override
-    public int compareTo(Schedule schedule) {
-        return Comparator.comparing(Schedule::getLocalDateTime)
-                .thenComparing(Schedule::getEmail)
+    public int compareTo(@NonNull Timetable schedule) {
+        return Comparator.comparing(Timetable::getLocalDateTime)
+                .thenComparing(Timetable::getEmail)
                 .compare(this, schedule);
     }
 
@@ -34,10 +34,6 @@ public final class Schedule implements Comparable<Schedule> {
 
     public LocalDateTime getLocalDateTime() {
         return localDateTime;
-    }
-
-    public boolean isFullNotification() {
-        return fullNotification;
     }
 
 }

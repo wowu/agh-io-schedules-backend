@@ -53,6 +53,9 @@ public class SubscriptionEntity {
     }
 
     public boolean isGlobal() {
+        if(email.getUser() == null){
+            return true;
+        }
         return email.getUser().isGlobalNotifications();
     }
 
