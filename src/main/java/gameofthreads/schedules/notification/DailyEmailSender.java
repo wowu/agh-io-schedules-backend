@@ -1,15 +1,8 @@
 package gameofthreads.schedules.notification;
 
-import gameofthreads.schedules.entity.ConferenceEntity;
-import gameofthreads.schedules.entity.LecturerEntity;
-import gameofthreads.schedules.entity.MeetingEntity;
-import gameofthreads.schedules.entity.SubscriptionEntity;
-import gameofthreads.schedules.repository.LecturerRepository;
-import gameofthreads.schedules.repository.MeetingRepository;
-import gameofthreads.schedules.repository.SubscriptionRepository;
+import gameofthreads.schedules.entity.*;
+import gameofthreads.schedules.repository.*;
 import gameofthreads.schedules.util.HtmlCreator;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,9 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 @Component
@@ -27,95 +19,127 @@ public class DailyEmailSender {
     private final static Logger LOGGER = LoggerFactory.getLogger(DailyEmailSender.class);
 
     private final EmailSender emailSender;
-    private final MeetingRepository meetingRepository;
-    private final LecturerRepository lecturerRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final NotificationRepository notificationRepository;
+    private final ConferenceRepository conferenceRepository;
 
-    public DailyEmailSender(EmailSender emailSender, MeetingRepository meetingRepository,
-                            LecturerRepository lecturerRepository, SubscriptionRepository subscriptionRepository) {
+    public DailyEmailSender(EmailSender emailSender, SubscriptionRepository subscriptionRepository,
+                            NotificationRepository notificationRepository, ConferenceRepository conferenceRepository) {
 
         this.emailSender = emailSender;
-        this.meetingRepository = meetingRepository;
-        this.lecturerRepository = lecturerRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.notificationRepository = notificationRepository;
+        this.conferenceRepository = conferenceRepository;
     }
 
-    private Tuple2<LocalDateTime, LocalDateTime> getNextDay() {
-        final LocalDateTime startDate = LocalDateTime.now().plusDays(1)
-                .withHour(0).withMinute(0).withSecond(0);
-
-        final LocalDateTime endDate = startDate.plusDays(1);
-        return Tuple.of(startDate, endDate);
+    private LocalDateTime getAnotherDay(Integer plusDays) {
+        return LocalDateTime.now()
+                .plusDays(plusDays)
+                .withHour(0)
+                .withMinute(0)
+                .withSecond(30);
     }
 
-    private Map<String, List<MeetingEntity>> prepareMeetings() {
-        Map<String, List<MeetingEntity>> emails = new HashMap<>();
+    private Map<String, Set<List<MeetingEntity>>> prepareMeetings() {
+        Map<String, Set<List<MeetingEntity>>> results = new HashMap<>();
 
-        final Map<String, LecturerEntity> lecturers = lecturerRepository
-                .findAll()
+        List<SubscriptionEntity> subscriptions = subscriptionRepository.findAll();
+        List<NotificationEntity> notifications = notificationRepository.findAll();
+
+        List<NotificationEntity> globalNotifications = notifications
                 .stream()
-                .collect(Collectors.toMap(LecturerEntity::getFullName, Function.identity()));
+                .filter(NotificationEntity::isGlobal)
+                .filter(n -> n.getUnit().equals(TimeUnit.DAY))
+                .collect(toList());
 
-        final var tomorrow = getNextDay();
-        final var tomorrowMeetings = meetingRepository.findTomorrowsMeetings(tomorrow._1(), tomorrow._2());
+        Map<Integer, List<ConferenceEntity>> conferenceGroupedBySchedule = conferenceRepository
+                .fetchWithScheduleAndMeetings()
+                .stream()
+                .collect(groupingBy(conference -> conference.getScheduleEntity().getId()));
 
-        for (MeetingEntity meeting : tomorrowMeetings) {
-            if (lecturers.containsKey(meeting.getFullName())) {
-                String email = lecturers.get(meeting.getFullName()).getEmail();
-                if (!emails.containsKey(email)) {
-                    List<MeetingEntity> meetingEntities = new ArrayList<>();
-                    meetingEntities.add(meeting);
-                    emails.put(email, meetingEntities);
-                } else {
-                    emails.get(email).add(meeting);
+        for (SubscriptionEntity subscription : subscriptions) {
+            Integer scheduleId = subscription.getSchedule().getId();
+            List<MeetingEntity> meetings = conferencesToMeetings(conferenceGroupedBySchedule.get(scheduleId));
+
+            // When add by public link
+            if (subscription.getLecturer() == null) {
+                for (NotificationEntity notification : globalNotifications) {
+                    var anotherDay = getAnotherDay(notification.getValue());
+                    List<MeetingEntity> filteredMeetings = meetings.stream()
+                            .filter(m -> m.getDateStart().getDayOfYear() == anotherDay.getDayOfYear())
+                            .collect(toList());
+
+                    putToResults(results, subscription, filteredMeetings);
                 }
+            }
+
+            // When user use global notification or it's a lecturer without account
+            else if (subscription.isGlobal()) {
+                insertMeetings(results, globalNotifications, subscription, meetings);
+            }
+
+            // When it's user with local notification
+            else {
+                List<NotificationEntity> userNotifications = notifications
+                        .stream()
+                        .filter(notification -> notification.checkUser(subscription.getUser().getId()))
+                        .collect(toList());
+
+                insertMeetings(results, userNotifications, subscription, meetings);
             }
         }
 
-        return emails;
+        return results;
     }
 
-    private Map<String, Set<ConferenceEntity>> prepareConferences() {
-        final var tomorrow = getNextDay();
+    private void insertMeetings(Map<String, Set<List<MeetingEntity>>> results, List<NotificationEntity> globalNotifications,
+                                SubscriptionEntity subscription, List<MeetingEntity> meetings) {
 
-        final Map<String, List<Set<ConferenceEntity>>> subscriptions = subscriptionRepository
-                .fetchAll(tomorrow._1(), tomorrow._2())
-                .stream()
-                .collect(Collectors.groupingBy(
-                        SubscriptionEntity::getEmail,
-                        Collectors.mapping(s -> s.getSchedule().getConferences(), toList()))
-                );
+        for (NotificationEntity notification : globalNotifications) {
+            var anotherDay = getAnotherDay(notification.getValue());
+            List<MeetingEntity> filteredMeetings = meetings.stream()
+                    .filter(m -> m.getFullName().equals(subscription.getLecturer().getFullName()))
+                    .filter(m -> m.getDateStart().getDayOfYear() == anotherDay.getDayOfYear())
+                    .collect(toList());
 
-        Map<String, Set<ConferenceEntity>> flattedSubscriptions = new HashMap<>();
-
-        subscriptions.forEach((email, listOfSets) -> {
-            var conferences = listOfSets.stream()
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toSet());
-            flattedSubscriptions.put(email, conferences);
-        });
-
-        return flattedSubscriptions;
+            putToResults(results, subscription, filteredMeetings);
+        }
     }
 
-    @Scheduled(cron = "0 0 8 *  * ?")
+    private void putToResults(Map<String, Set<List<MeetingEntity>>> results, SubscriptionEntity subscription,
+                              List<MeetingEntity> filteredMeetings) {
+
+        if (filteredMeetings.size() > 0) {
+            if (results.containsKey(subscription.getEmail())) {
+                results.get(subscription.getEmail()).add(filteredMeetings);
+            } else {
+                Set<List<MeetingEntity>> set = new LinkedHashSet<>();
+                set.add(filteredMeetings);
+                results.put(subscription.getEmail(), set);
+            }
+        }
+    }
+
+    private List<MeetingEntity> conferencesToMeetings(List<ConferenceEntity> conferences) {
+        List<MeetingEntity> meetings = new ArrayList<>();
+        conferences.forEach(c -> meetings.addAll(c.getMeetingEntities()));
+
+        return meetings.stream()
+                .sorted(Comparator.comparing(MeetingEntity::getDateStart))
+                .collect(toList());
+    }
+
+    @Scheduled(cron = "0 30 8 *  * ?")
     public void sendEmails() {
         LOGGER.info("!! Schedule is running : send email with meetings !!");
         var meetingsPerEmail = prepareMeetings();
 
         meetingsPerEmail.forEach((email, meetings) -> {
-            String htmlMessage = HtmlCreator.createMeetingsEmail(meetings);
-            emailSender.sendEmail(email, htmlMessage);
-        });
-
-        LOGGER.info("!! Schedule is running : send email with conferences !!");
-        var conferencesPerEmail = prepareConferences();
-
-        conferencesPerEmail.forEach((email, conferences) -> {
-            if (!meetingsPerEmail.containsKey(email)) {
-                String htmlMessage = HtmlCreator.createConferencesEmail(conferences);
+            meetings.forEach(m -> {
+                String htmlMessage = HtmlCreator.createMeetingsEmail(m);
                 emailSender.sendEmail(email, htmlMessage);
-            }
+            });
+
         });
 
     }

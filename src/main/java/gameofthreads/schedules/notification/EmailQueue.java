@@ -51,7 +51,6 @@ public class EmailQueue {
         }
 
         if(top != null && top.isTimeToSend()){
-            top.getTimetables().pollFirst();
             return Optional.of(top);
         }
 

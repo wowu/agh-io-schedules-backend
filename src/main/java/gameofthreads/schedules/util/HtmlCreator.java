@@ -91,7 +91,7 @@ public class HtmlCreator {
         stringBuilder.append("<table id=\"customers\">");
         stringBuilder.append("<tr>");
 
-        createMeetingsTable(meetings);
+        stringBuilder.append(createMeetingsTable(meetings));
         stringBuilder.append("</table>");
 
         return stringBuilder.toString();

@@ -30,7 +30,7 @@ public class EmailSender {
         if (optionalMeeting.isPresent()) {
             var meeting = optionalMeeting.get();
 
-            Timetable timetable = meeting.first().orElse(null);
+            Timetable timetable = meeting.getTimetables().pollFirst();
 
             if(timetable != null){
                 String html = HtmlCreator.createContext(meeting);
@@ -40,6 +40,7 @@ public class EmailSender {
     }
 
     protected void sendEmail(String email, String htmlMessage) {
+        LOGGER.info("SEND EMAIL TO : " + email);
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message);
 
